@@ -1,3 +1,4 @@
+/* General Page Styling */
 body {
   display: flex;
   justify-content: center;
@@ -6,27 +7,61 @@ body {
   background-color: #181818;
   color: white;
   font-family: Arial, sans-serif;
+  margin: 0;
 }
 
+/* Main Container */
 .container {
   text-align: center;
 }
 
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 100px);
-  gap: 5px;
-  margin: 20px auto;
-  padding: 10px;
-  background-color: #222;
-  border-radius: 10px;
-  width: fit-content;
+/* Grid Wrapper */
+.grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
 }
 
+/* Column Headers */
+.column-headers {
+  /* width: 163px;
+  height: 163px; */
+  display: flex;
+  padding-left: 163px;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.header-cell {
+  width: 163px;
+  height: 163px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: #444; */
+  /* border: 2px solid white; */
+  font-weight: bold;
+}
+
+/* Grid Layout */
+.grid-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Row Layout */
+.grid-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Individual Grid Cells */
 .grid-cell {
-  width: 100px;
-  height: 100px;
+  width: 163px;
+  height: 163px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,14 +72,19 @@ body {
   transition: background-color 0.3s ease;
 }
 
+/* Hover Effect */
 .grid-cell:hover {
-  background-color: #444; /* Light up effect on hover */
+  background-color: #444;
 }
 
+/* Selected Cell Highlight */
 .selected {
-  background-color: #555; /* Highlight selected cell */
+  background-color: #f39c12;
+  border-color: yellow;
+  transform: scale(1.05);
 }
 
+/* Input Container */
 .input-container {
   margin-top: 20px;
   display: flex;
@@ -52,6 +92,7 @@ body {
   gap: 10px;
 }
 
+/* Input Box */
 .input-box {
   padding: 10px;
   border-radius: 5px;
@@ -59,6 +100,7 @@ body {
   width: 200px;
 }
 
+/* Submit Button */
 .submit-button {
   padding: 10px 20px;
   border-radius: 5px;
@@ -71,6 +113,10 @@ body {
 .submit-button:hover {
   background-color: darkblue;
 }
+
+
+
+
 
 
 
