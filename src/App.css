@@ -109,34 +109,87 @@ body {
   transform: scale(1.05);
 }
 
-/* Input Container */
+/* Input Box */
 .input-container {
-  margin-top: 20px;
+  position: absolute; /* Positions it in a set place */
+  top: 50px; /* Adjust this based on your UI */
+  left: 50%;
+  transform: translateX(-50%); /* Centers the input box */
+  background: rgba(0, 0, 0, 0.8); /* Dark background */
+  padding: 10px;
+  border-radius: 10px;
   display: flex;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000; /* Ensures it stays above everything */
 }
 
-/* Input Box */
+/* Autocomplete List */
+.autocomplete-list {
+  max-height: 200px; /* ✅ Limits height */
+  overflow-y: auto; /* ✅ Enables scrolling */
+  width: 100%;
+  background: black;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.autocomplete-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.autocomplete-list li {
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.autocomplete-list li:hover {
+  background: #444;
+}
+
+/* No Suggestions Message */
+.no-suggestions {
+  padding: 8px;
+  color: grey;
+  text-align: center;
+}
+
+.suggestion-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.suggestion-item:hover {
+  background: #333;
+}
+
 .input-box {
   padding: 10px;
-  border-radius: 5px;
+  width: 250px;
   border: none;
-  width: 200px;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
-/* Submit Button */
-.submit-button {
-  padding: 10px 20px;
-  border-radius: 5px;
-  background-color: blue;
+.select-button {
+  background: #28a745; /* Green button like your reference */
   color: white;
-  cursor: pointer;
   border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-.submit-button:hover {
-  background-color: darkblue;
+.select-button:hover {
+  background: #218838;
 }
 
 

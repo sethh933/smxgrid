@@ -44,9 +44,14 @@ function App() {
 
   // Handle cell selection
   const handleCellClick = (rowIndex, colIndex) => {
+    if (guessesLeft === 0) return; // ✅ Prevent clicking when guesses are gone
+  
     setSelectedCell({ row: rowIndex, col: colIndex });
-    setRiderName(""); // Reset rider input when selecting a new cell
+    setRiderName(""); 
+    setSuggestions([]);
   };
+  
+  
 
   // Handle input change
   const handleInputChange = async (event) => {
@@ -66,8 +71,8 @@ function App() {
   };
 
   // Submit guess to backend
-  const handleSubmit = async () => {
-    if (!selectedCell || riderName.trim() === "") return;
+  const handleSubmit = async (selectedRider = riderName) => {
+    if (!selectedCell || selectedRider.trim() === "") return;
   
     if (guessesLeft <= 0) {
       alert("No more attempts left!");
@@ -78,23 +83,21 @@ function App() {
       const response = await axios.post(
         "http://localhost:8000/guess",
         {
-          rider: riderName,
-          row: rows[selectedCell.row], // Convert row index to actual row label
-          column: columns[selectedCell.col], // Convert column index to actual column label
+          rider: selectedRider,
+          row: rows[selectedCell.row], 
+          column: columns[selectedCell.col], 
         },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
   
       alert(response.data.message);
   
       if (response.data.message.includes("✅")) {
         setGrid(prevGrid => {
-          const newGrid = prevGrid.map(row => [...row]); // Copy grid
+          const newGrid = prevGrid.map(row => [...row]);
           newGrid[selectedCell.row][selectedCell.col] = {
-            name: riderName,
-            image: response.data.image_url || "", // ✅ Store the image URL
+            name: selectedRider,
+            image: response.data.image_url || "",
           };
           return newGrid;
         });
@@ -107,7 +110,7 @@ function App() {
       } else {
         setIncorrectGuesses(prev => ({
           ...prev,
-          [`${selectedCell.row},${selectedCell.col}`]: riderName,
+          [`${selectedCell.row},${selectedCell.col}`]: selectedRider,
         }));
       }
   
@@ -118,8 +121,7 @@ function App() {
       console.error("Error submitting guess:", error);
       alert(error.response?.data?.detail || "An error occurred");
     }
-  };
-  
+  }; 
 
   return (
     <div className="container">
@@ -164,47 +166,54 @@ function App() {
       </div>
 
       {selectedCell && (
-        <div className="input-container">
-          <input
-            type="text"
-            placeholder="Enter rider name..."
-            className="input-box"
-            value={riderName}
-            onChange={handleInputChange}
-          />
-          <ul className="autocomplete-list">
-            {suggestions.map((suggestion, index) => {
-              const isIncorrect =
-                incorrectGuesses[`${selectedCell.row},${selectedCell.col}`] === suggestion;
+  <div className="input-container">
+    <input
+  type="text"
+  placeholder="Enter rider name..."
+  className="input-box"
+  value={riderName}
+  onChange={handleInputChange}
+  onBlur={(event) => {
+    if (!event.relatedTarget || !event.relatedTarget.classList.contains("select-button")) {
+      setSelectedCell(null); // ✅ Hide input ONLY if not clicking a select button
+    }
+  }}
+  autoFocus
+/>
 
-              return (
-                <li
-                  key={index}
-                  onClick={() => setRiderName(suggestion)}
-                  style={{ color: isIncorrect ? "red" : "white" }} // ✅ Make incorrect guesses red
-                >
-                  {suggestion}
-                </li>
-              );
-            })}
-          </ul>
-          <button className="submit-button" onClick={handleSubmit}>
-            Submit
-          </button>
-        </div>
+    <div className="autocomplete-list">
+      {suggestions.length > 0 ? (
+        <ul>
+          {suggestions.map((suggestion, index) => {
+            const isIncorrect =
+              incorrectGuesses[`${selectedCell.row},${selectedCell.col}`] === suggestion;
+
+            return (
+              <li key={index} className="suggestion-item">
+  <span>{suggestion}</span>
+  <button
+  className="select-button"
+  onClick={async () => {
+    setRiderName(suggestion); // ✅ Update the input field
+    await handleSubmit(suggestion); // ✅ Automatically submit the guess
+  }}
+>
+  Select
+</button>
+
+</li>
+
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="no-suggestions">No matches found</p> // ✅ Handles empty list case
       )}
+    </div>
+  </div>
+)}
     </div>
   );
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
