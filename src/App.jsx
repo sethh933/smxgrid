@@ -68,12 +68,12 @@ function App() {
   // Submit guess to backend
   const handleSubmit = async () => {
     if (!selectedCell || riderName.trim() === "") return;
-
+  
     if (guessesLeft <= 0) {
       alert("No more attempts left!");
       return;
     }
-
+  
     try {
       const response = await axios.post(
         "http://localhost:8000/guess",
@@ -86,35 +86,32 @@ function App() {
           headers: { "Content-Type": "application/json" },
         }
       );
-
+  
       alert(response.data.message);
-
-      // ✅ Update the grid to show the guessed rider **only if correct**
+  
       if (response.data.message.includes("✅")) {
         setGrid(prevGrid => {
           const newGrid = prevGrid.map(row => [...row]); // Copy grid
-          newGrid[selectedCell.row][selectedCell.col] = riderName; // Set guessed rider
+          newGrid[selectedCell.row][selectedCell.col] = {
+            name: riderName,
+            image: response.data.image_url || "", // ✅ Store the image URL
+          };
           return newGrid;
         });
-
-        // ✅ Remove incorrect guess for this cell (if it was previously incorrect)
+  
         setIncorrectGuesses(prev => {
           const updatedGuesses = { ...prev };
           delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
           return updatedGuesses;
         });
       } else {
-        // ✅ Track incorrect guesses for the specific cell
         setIncorrectGuesses(prev => ({
           ...prev,
-          [`${selectedCell.row},${selectedCell.col}`]: riderName, // Save incorrect guess per cell
+          [`${selectedCell.row},${selectedCell.col}`]: riderName,
         }));
       }
-
-      // ✅ Update guesses left
+  
       setGuessesLeft(response.data.remaining_attempts);
-
-      // ✅ Clear input and selected cell
       setRiderName("");
       setSelectedCell(null);
     } catch (error) {
@@ -122,6 +119,7 @@ function App() {
       alert(error.response?.data?.detail || "An error occurred");
     }
   };
+  
 
   return (
     <div className="container">
@@ -143,16 +141,23 @@ function App() {
             <div key={rowIndex} className="grid-row">
               <div className="header-cell">{row}</div>
               {grid[rowIndex].map((cell, colIndex) => (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className={`grid-cell ${
-                    selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""
-                  }`}
-                  onClick={() => handleCellClick(rowIndex, colIndex)}
-                >
-                  {cell}
-                </div>
-              ))}
+  <div
+    key={`${rowIndex}-${colIndex}`}
+    className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+    onClick={() => handleCellClick(rowIndex, colIndex)}
+  >
+    {cell && cell.image ? (
+      <>
+        <img src={cell.image} alt={cell.name} className="rider-image" />
+        <div className="rider-name-banner">{cell.name}</div> {/* ✅ Name banner added */}
+      </>
+    ) : (
+      cell.name || ""
+    )}
+  </div>
+))}
+
+
             </div>
           ))}
         </div>

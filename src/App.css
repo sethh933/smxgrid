@@ -60,6 +60,7 @@ body {
 
 /* Individual Grid Cells */
 .grid-cell {
+  position: relative;
   width: 163px;
   height: 163px;
   display: flex;
@@ -70,6 +71,30 @@ body {
   font-size: 18px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  overflow: hidden; /* Ensures the name banner doesn’t overflow */
+}
+
+/* Rider Image Styling */
+.rider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image fills the cell properly */
+  border-radius: 10px; /* Optional: rounded corners */
+}
+
+/* Rider Name Banner */
+.rider-name-banner {
+  position: absolute; /* Positions it inside the grid cell */
+  bottom: 0; /* Anchors to the bottom */
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  color: white;
+  text-align: center;
+  font-size: 14px;
+  padding: 5px 0;
+  font-weight: bold;
+  border-bottom-left-radius: 10px; /* Match image border */
+  border-bottom-right-radius: 10px;
 }
 
 /* Hover Effect */
