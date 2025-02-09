@@ -188,6 +188,29 @@ body {
   font-size: 14px;
 }
 
+.give-up-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.give-up-button {
+  margin-top: 10px;
+  padding: 8px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.give-up-button:hover {
+  background-color: darkred;
+}
+
 .select-button:hover {
   background: #218838;
 }

@@ -11,7 +11,16 @@ function App() {
   const [riderName, setRiderName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [incorrectGuesses, setIncorrectGuesses] = useState({}); // Tracks incorrect guesses per cell
-
+  const handleGiveUp = async () => {
+    try {
+      const response = await axios.post("http://localhost:8000/give-up");
+      alert(response.data.message); // Show the message
+      setGuessesLeft(0); // Update UI to reflect zero guesses left
+    } catch (error) {
+      console.error("Error giving up:", error);
+    }
+  };
+  
   // Fetch game data from backend
   useEffect(() => {
     const initializeGrid = async () => {
@@ -126,7 +135,13 @@ function App() {
   return (
     <div className="container">
       <h1>Motocross Grid Game</h1>
-      <p>Guesses Left: {guessesLeft}</p>
+<div className="give-up-container">
+  <p>Guesses Left: {guessesLeft}</p>
+  <button className="give-up-button" onClick={handleGiveUp}>
+    Give Up
+  </button>
+</div>
+
 
       <div className="grid-wrapper">
         <div className="column-headers">
