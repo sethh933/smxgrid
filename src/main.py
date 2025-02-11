@@ -71,7 +71,9 @@ invalid_pairings = {
     "450 SX Win": ["Anaheim 1 450 SX Winner"],
     "Anaheim 1 450 SX Winner": ["450 SX Win"],
     "Raced in the 1990s": ["Raced in the 2020s"],
-    "Raced in the 2020s": ["Raced in the 1990s"],    
+    "Raced in the 2020s": ["Raced in the 1990s"],
+    "Red Bud 450 MX Winner": ["450 MX Win"],
+    "450 MX Win": ["Red Bud 450 MX Winner"],
 }
 
 def is_strongly_playable(grid_data: Dict[Tuple[str, str], Set[str]]) -> bool:
