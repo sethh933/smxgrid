@@ -10,26 +10,16 @@ function App() {
   const [selectedCell, setSelectedCell] = useState(null);
   const [riderName, setRiderName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [incorrectGuesses, setIncorrectGuesses] = useState({}); // Tracks incorrect guesses per cell
-  const handleGiveUp = async () => {
-    try {
-      const response = await axios.post("http://localhost:8000/give-up");
-      alert(response.data.message); // Show the message
-      setGuessesLeft(0); // Update UI to reflect zero guesses left
-    } catch (error) {
-      console.error("Error giving up:", error);
-    }
-  };
-  
-  // Fetch game data from backend
+  const [incorrectGuesses, setIncorrectGuesses] = useState({});
+  const [gameSummary, setGameSummary] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
+
+  // Fetch grid data from backend
   useEffect(() => {
     const initializeGrid = async () => {
       try {
-        await axios.post("http://localhost:8000/generate-grid");
-        const response = await axios.get("http://localhost:8000/grid");
-
+        const response = await axios.get("http://localhost:8000/grid");  // ✅ Fetch Active Grid from SQL
         console.log("Fetched Grid Data:", response.data);
-
         setRows(response.data.rows);
         setColumns(response.data.columns);
 
@@ -51,16 +41,30 @@ function App() {
     initializeGrid();
   }, []);
 
+  // Fetch game summary when game ends
+  useEffect(() => {
+    if (gameOver) {
+      fetchGameSummary();
+    }
+  }, [gameOver]);
+
+  const fetchGameSummary = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/game-summary");
+      setGameSummary(response.data);
+    } catch (error) {
+      console.error("Error fetching game summary:", error);
+    }
+  };
+
   // Handle cell selection
   const handleCellClick = (rowIndex, colIndex) => {
-    if (guessesLeft === 0) return; // ✅ Prevent clicking when guesses are gone
-  
+    if (guessesLeft === 0) return;
+
     setSelectedCell({ row: rowIndex, col: colIndex });
-    setRiderName(""); 
+    setRiderName("");
     setSuggestions([]);
   };
-  
-  
 
   // Handle input change
   const handleInputChange = async (event) => {
@@ -68,165 +72,193 @@ function App() {
     setRiderName(input);
 
     if (input.length >= 2) {
-      try {
-        const response = await axios.get(`http://localhost:8000/autocomplete?query=${input}`);
-        setSuggestions(response.data.riders);
-      } catch (error) {
-        console.error("Error fetching autocomplete suggestions:", error);
-      }
+        try {
+            console.log(`Fetching autocomplete for: ${input}`);
+            
+            const response = await axios.get(`http://localhost:8000/autocomplete?query=${input}`);
+            console.log("Autocomplete response:", response.data);
+            
+            if (response.data && response.data.riders) {
+                setSuggestions(response.data.riders);
+            } else {
+                setSuggestions([]);
+            }
+        } catch (error) {
+            console.error("Error fetching autocomplete suggestions:", error);
+            setSuggestions([]); // ✅ Ensure it resets on failure
+        }
     } else {
-      setSuggestions([]);
+        setSuggestions([]);
     }
-  };
+};
 
-  // Submit guess to backend
+  
+
+  // Handle guess submission
   const handleSubmit = async (selectedRider = riderName) => {
     if (!selectedCell || selectedRider.trim() === "") return;
-  
+
     if (guessesLeft <= 0) {
-      alert("No more attempts left!");
-      return;
+        alert("No more attempts left!");
+        return;
     }
-  
+
     try {
-      const response = await axios.post(
-        "http://localhost:8000/guess",
-        {
-          rider: selectedRider,
-          row: rows[selectedCell.row], 
-          column: columns[selectedCell.col], 
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-  
-      alert(response.data.message);
-  
-      if (response.data.message.includes("✅")) {
-        setGrid(prevGrid => {
-          const newGrid = prevGrid.map(row => [...row]);
-          newGrid[selectedCell.row][selectedCell.col] = {
-            name: selectedRider,
-            image: response.data.image_url || "",
-          };
-          return newGrid;
-        });
-  
-        setIncorrectGuesses(prev => {
-          const updatedGuesses = { ...prev };
-          delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
-          return updatedGuesses;
-        });
-      } else {
-        setIncorrectGuesses(prev => ({
-          ...prev,
-          [`${selectedCell.row},${selectedCell.col}`]: selectedRider,
-        }));
-      }
-  
-      setGuessesLeft(response.data.remaining_attempts);
-      setRiderName("");
-      setSelectedCell(null);
+        const requestBody = {
+            rider: selectedRider,
+            row: rows[selectedCell.row], 
+            column: columns[selectedCell.col], 
+        };
+
+        console.log("Submitting guess:", requestBody); // ✅ Debugging log
+
+        const response = await axios.post(
+            `http://localhost:8000/guess?user_id=1`,  // ✅ Add user_id as query param
+            requestBody,
+            { headers: { "Content-Type": "application/json" } }
+        );
+
+        console.log("Guess response:", response.data); // ✅ Debugging log
+        alert(response.data.message);
+
+        if (response.data.message.includes("✅")) {
+            setGrid(prevGrid => {
+                const newGrid = prevGrid.map(row => [...row]);
+                newGrid[selectedCell.row][selectedCell.col] = {
+                    name: selectedRider,
+                    image: response.data.image_url || "",
+                };
+                return newGrid;
+            });
+
+            setIncorrectGuesses(prev => {
+                const updatedGuesses = { ...prev };
+                delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
+                return updatedGuesses;
+            });
+        } else {
+            setIncorrectGuesses(prev => ({
+                ...prev,
+                [`${selectedCell.row},${selectedCell.col}`]: selectedRider,
+            }));
+        }
+
+        setGuessesLeft(response.data.remaining_attempts);
+        setRiderName("");
+        setSelectedCell(null);
     } catch (error) {
-      console.error("Error submitting guess:", error);
-      alert(error.response?.data?.detail || "An error occurred");
+        console.error("Error submitting guess:", error);
+        alert(error.response?.data?.detail || "An error occurred");
     }
-  }; 
+};
+
+  
+
+  // Handle Give Up
+  const handleGiveUp = async () => {
+    try {
+      const response = await axios.post("http://localhost:8000/give-up");
+      alert(response.data.message);
+      setGuessesLeft(0);
+      setGameOver(true);
+    } catch (error) {
+      console.error("Error giving up:", error);
+    }
+  };
 
   return (
     <div className="container">
       <h1>Motocross Grid Game</h1>
-<div className="give-up-container">
-  <p>Guesses Left: {guessesLeft}</p>
-  <button className="give-up-button" onClick={handleGiveUp}>
-    Give Up
-  </button>
-</div>
-
-
-      <div className="grid-wrapper">
-        <div className="column-headers">
-          <div className="empty-cell"></div>
-          {columns.map((col, index) => (
-            <div key={index} className="header-cell">
-              {col}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid-body">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid-row">
-              <div className="header-cell">{row}</div>
-              {grid[rowIndex].map((cell, colIndex) => (
-  <div
-    key={`${rowIndex}-${colIndex}`}
-    className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-    onClick={() => handleCellClick(rowIndex, colIndex)}
-  >
-    {cell && cell.image ? (
-      <>
-        <img src={cell.image} alt={cell.name} className="rider-image" />
-        <div className="rider-name-banner">{cell.name}</div> {/* ✅ Name banner added */}
-      </>
-    ) : (
-      cell.name || ""
-    )}
-  </div>
-))}
-
-
-            </div>
-          ))}
-        </div>
+      <div className="give-up-container">
+        <p>Guesses Left: {guessesLeft}</p>
+        <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
       </div>
 
-      {selectedCell && (
-  <div className="input-container">
-    <input
-  type="text"
-  placeholder="Enter rider name..."
-  className="input-box"
-  value={riderName}
-  onChange={handleInputChange}
-  onBlur={(event) => {
-    if (!event.relatedTarget || !event.relatedTarget.classList.contains("select-button")) {
-      setSelectedCell(null); // ✅ Hide input ONLY if not clicking a select button
-    }
-  }}
-  autoFocus
-/>
-
-    <div className="autocomplete-list">
-      {suggestions.length > 0 ? (
-        <ul>
-          {suggestions.map((suggestion, index) => {
-            const isIncorrect =
-              incorrectGuesses[`${selectedCell.row},${selectedCell.col}`] === suggestion;
-
-            return (
-              <li key={index} className="suggestion-item">
-  <span>{suggestion}</span>
-  <button
-  className="select-button"
-  onClick={async () => {
-    setRiderName(suggestion); // ✅ Update the input field
-    await handleSubmit(suggestion); // ✅ Automatically submit the guess
-  }}
->
-  Select
-</button>
-
-</li>
-
-            );
-          })}
-        </ul>
+      {gameOver ? (
+        <div className="game-summary">
+          <h2>Game Over!</h2>
+          <p>Total Games Played: {gameSummary?.total_games_played}</p>
+          <p>Average Score: {gameSummary?.average_score}</p>
+          <p>Rarity Scores:</p>
+          <ul>
+            {gameSummary?.rarity_scores && Object.entries(gameSummary.rarity_scores).map(([user, score]) => (
+              <li key={user}>{user}: {score}</li>
+            ))}
+          </ul>
+        </div>
       ) : (
-        <p className="no-suggestions">No matches found</p> // ✅ Handles empty list case
-      )}
-    </div>
+        <>
+          <div className="grid-wrapper">
+            <div className="column-headers">
+              <div className="empty-cell"></div>
+              {columns.map((col, index) => (
+                <div key={index} className="header-cell">{col}</div>
+              ))}
+            </div>
+
+            <div className="grid-body">
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="grid-row">
+                  <div className="header-cell">{row}</div>
+                  {grid[rowIndex].map((cell, colIndex) => (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+                      onClick={() => handleCellClick(rowIndex, colIndex)}
+                    >
+                      {cell && cell.image ? (
+                        <>
+                          <img src={cell.image} alt={cell.name} className="rider-image" />
+                          <div className="rider-name-banner">{cell.name}</div>
+                        </>
+                      ) : (
+                        cell.name || ""
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {selectedCell && (
+  <div className="input-container">
+    <input 
+      type="text" 
+      placeholder="Enter rider name..." 
+      className="input-box" 
+      value={riderName} 
+      onChange={handleInputChange} 
+      autoFocus 
+    />
+    <button onClick={() => handleSubmit()}>Submit</button>
+
+    {/* ✅ Autocomplete Dropdown Below Input */}
+    {suggestions.length > 0 && (
+      <div className="autocomplete-list">
+        <ul>
+          {suggestions.map((suggestion, index) => (
+            <li key={index} className="suggestion-item">
+              <span>{suggestion}</span>
+              <button
+                className="select-button"
+                onClick={async () => {
+                  setRiderName(suggestion); // ✅ Updates the input field
+                  await handleSubmit(suggestion); // ✅ Automatically submits
+                }}
+              >
+                Select
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
   </div>
 )}
+
+        </>
+      )}
     </div>
   );
 }
