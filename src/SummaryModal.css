@@ -1,0 +1,50 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 500px;
+    text-align: center;
+}
+
+.summary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.summary-row {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.summary-cell {
+    background: #222;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    min-width: 50px;
+}
+
+.close-button {
+    background: red;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
