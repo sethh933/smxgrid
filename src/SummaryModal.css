@@ -11,7 +11,7 @@
 }
 
 .modal-content {
-    background: #fff;
+    /*background: #fff;*/
     padding: 20px;
     border-radius: 10px;
     width: 500px;
@@ -33,7 +33,9 @@
 
 .summary-cell {
     background: #222;
-    color: #fff;
+
+    /*color: #fff;*/
+
     padding: 10px;
     border-radius: 5px;
     min-width: 50px;
@@ -48,3 +50,11 @@
     cursor: pointer;
     margin-top: 10px;
 }
+
+  .summary-modal {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    text-align: center;
+  }  

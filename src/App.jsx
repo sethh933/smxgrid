@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
+import SummaryModal from "./SummaryModal.jsx"; // ✅ Import Summary Modal
+
 
 function App() {
   const [grid, setGrid] = useState(Array(3).fill(Array(3).fill(""))); // 3x3 empty grid
@@ -13,6 +15,8 @@ function App() {
   const [incorrectGuesses, setIncorrectGuesses] = useState({});
   const [gameSummary, setGameSummary] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+
 
   // Fetch grid data from backend
   useEffect(() => {
@@ -42,11 +46,22 @@ function App() {
   }, []);
 
   // Fetch game summary when game ends
-  useEffect(() => {
-    if (gameOver) {
+useEffect(() => {
+  if (gameOver) {
       fetchGameSummary();
-    }
-  }, [gameOver]);
+  }
+}, [gameOver]);
+
+// ✅ NEW: Automatically open summary modal when guesses hit 0
+useEffect(() => {
+  if (guessesLeft === 0) {
+      console.log("Game over detected. Opening summary modal...");
+      fetchGameSummary();
+      setGameOver(true); 
+      setIsSummaryOpen(true); // ✅ Open summary modal when game ends
+  }
+}, [guessesLeft]);
+
 
   const fetchGameSummary = async () => {
     try {
@@ -157,36 +172,28 @@ function App() {
   // Handle Give Up
   const handleGiveUp = async () => {
     try {
-      const response = await axios.post("http://localhost:8000/give-up");
-      alert(response.data.message);
-      setGuessesLeft(0);
-      setGameOver(true);
+        const response = await axios.post("http://localhost:8000/give-up");
+        alert(response.data.message);
+        setGuessesLeft(0);
+        setGameOver(true);
+        setIsSummaryOpen(true); // ✅ Open summary modal when giving up
     } catch (error) {
-      console.error("Error giving up:", error);
+        console.error("Error giving up:", error);
     }
-  };
+};
+
 
   return (
     <div className="container">
-      <h1>Motocross Grid Game</h1>
+      <h1>smxmuse grid</h1>
       <div className="give-up-container">
-        <p>Guesses Left: {guessesLeft}</p>
-        <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
-      </div>
-
-      {gameOver ? (
-        <div className="game-summary">
-          <h2>Game Over!</h2>
-          <p>Total Games Played: {gameSummary?.total_games_played}</p>
-          <p>Average Score: {gameSummary?.average_score}</p>
-          <p>Rarity Scores:</p>
-          <ul>
-            {gameSummary?.rarity_scores && Object.entries(gameSummary.rarity_scores).map(([user, score]) => (
-              <li key={user}>{user}: {score}</li>
-            ))}
-          </ul>
-        </div>
-      ) : (
+  <p>Guesses Left: {guessesLeft}</p>
+  {gameOver ? (
+    <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
+  ) : (
+    <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
+  )}
+</div>
         <>
           <div className="grid-wrapper">
             <div className="column-headers">
@@ -220,6 +227,7 @@ function App() {
               ))}
             </div>
           </div>
+          
 
           {selectedCell && (
   <div className="input-container">
@@ -231,7 +239,6 @@ function App() {
       onChange={handleInputChange} 
       autoFocus 
     />
-    <button onClick={() => handleSubmit()}>Submit</button>
 
     {/* ✅ Autocomplete Dropdown Below Input */}
     {suggestions.length > 0 && (
@@ -256,9 +263,18 @@ function App() {
     )}
   </div>
 )}
-
         </>
-      )}
+      {isSummaryOpen && gameSummary && (
+  <SummaryModal 
+    isOpen={isSummaryOpen}
+    onClose={() => setIsSummaryOpen(false)}
+    totalGames={gameSummary.total_games_played}
+    averageScore={gameSummary.average_score}
+    rarityScores={gameSummary.rarity_scores}
+    mostGuessedGrid={gameSummary.most_guessed_grid || []}  // ✅ Provide a default empty array
+    correctPercentageGrid={gameSummary.correct_percentage_grid || []}  // ✅ Provide a default empty array
+  />
+)}
     </div>
   );
 }
