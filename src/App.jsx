@@ -63,14 +63,42 @@ useEffect(() => {
 }, [guessesLeft]);
 
 
-  const fetchGameSummary = async () => {
-    try {
+const fetchGameSummary = async () => {
+  try {
       const response = await axios.get("http://localhost:8000/game-summary");
-      setGameSummary(response.data);
-    } catch (error) {
+      const data = response.data;
+
+      console.log("Game Summary API Response:", data);
+
+      // ✅ Transform the most guessed riders into a 3x3 grid
+      const formattedMostGuessed = rows.map(row =>
+          columns.map(col =>
+              data.most_guessed_riders.find(item => item.row === row && item.col === col) || { rider: "No data", guess_percentage: 0 }
+          )
+      );
+
+      // ✅ Transform correct guess percentages into a 3x3 grid
+      const formattedCorrectPercentages = rows.map(row =>
+          columns.map(col =>
+              data.cell_completion_rates.find(item => item.row === row && item.col === col) || { completion_percentage: 0 }
+          )
+      );
+
+      console.log("Formatted Most Guessed Grid:", formattedMostGuessed);
+      console.log("Formatted Correct Guess Percentages:", formattedCorrectPercentages);
+
+      setGameSummary({
+          ...data,
+          mostGuessedGrid: formattedMostGuessed,
+          correctPercentageGrid: formattedCorrectPercentages
+      });
+
+  } catch (error) {
       console.error("Error fetching game summary:", error);
-    }
-  };
+  }
+};
+
+
 
   // Handle cell selection
   const handleCellClick = (rowIndex, colIndex) => {
@@ -264,17 +292,18 @@ useEffect(() => {
   </div>
 )}
         </>
-      {isSummaryOpen && gameSummary && (
-  <SummaryModal 
-    isOpen={isSummaryOpen}
-    onClose={() => setIsSummaryOpen(false)}
-    totalGames={gameSummary.total_games_played}
-    averageScore={gameSummary.average_score}
-    rarityScores={gameSummary.rarity_scores}
-    mostGuessedGrid={gameSummary.most_guessed_grid || []}  // ✅ Provide a default empty array
-    correctPercentageGrid={gameSummary.correct_percentage_grid || []}  // ✅ Provide a default empty array
-  />
+        {isSummaryOpen && gameSummary && (
+    <SummaryModal 
+        isOpen={isSummaryOpen}
+        onClose={() => setIsSummaryOpen(false)}
+        totalGames={gameSummary.total_games_played}
+        averageScore={gameSummary.average_score}
+        rarityScores={gameSummary.rarity_scores}
+        mostGuessedGrid={gameSummary.mostGuessedGrid || []}  // ✅ Ensure proper data passing
+        correctPercentageGrid={gameSummary.correctPercentageGrid || []}  // ✅ Ensure proper data passing
+    />
 )}
+
     </div>
   );
 }

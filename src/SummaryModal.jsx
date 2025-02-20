@@ -12,7 +12,7 @@ const SummaryModal = ({
 }) => {
     if (!isOpen) return null; // ✅ Hide when not open
 
-    console.log("Rendering Summary Modal with data:", {
+    console.log("Summary Modal Data:", {
         totalGames,
         averageScore,
         rarityScores,
@@ -39,7 +39,6 @@ const SummaryModal = ({
         <p>No rarity scores available.</p>
     )}
 </ul>
-
 
                 {/* ✅ Most Guessed Grid */}
 <h3>Most Popular Guesses</h3>
@@ -76,7 +75,6 @@ const SummaryModal = ({
         <p>No data available</p>
     )}
 </div>
-
 
                 {/* ✅ Close Button */}
                 <button onClick={onClose} className="close-button">Close</button>
