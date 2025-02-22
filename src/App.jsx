@@ -294,16 +294,19 @@ const fetchGameSummary = async () => {
 )}
         </>
         {isSummaryOpen && gameSummary && (
-    <SummaryModal 
+    <SummaryModal
         isOpen={isSummaryOpen}
         onClose={() => setIsSummaryOpen(false)}
         totalGames={gameSummary.total_games_played}
         averageScore={gameSummary.average_score}
         rarityScores={gameSummary.rarity_scores}
-        mostGuessedGrid={gameSummary.mostGuessedGrid || []}  // ✅ Ensure proper data passing
-        correctPercentageGrid={gameSummary.correctPercentageGrid || []}  // ✅ Ensure proper data passing
+        mostGuessedGrid={gameSummary.mostGuessedGrid || []}
+        correctPercentageGrid={gameSummary.correctPercentageGrid || []}
+        rows={rows}  // ✅ Pass rows
+        columns={columns}  // ✅ Pass columns
     />
 )}
+
 
     </div>
   );

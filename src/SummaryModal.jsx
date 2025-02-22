@@ -1,16 +1,18 @@
 import React from "react";
-import "./SummaryModal.css"; // ✅ Styling file (create this too)
+import "./SummaryModal.css";
 
-const SummaryModal = ({ 
-    isOpen, 
-    onClose, 
-    totalGames, 
-    averageScore, 
-    rarityScores, 
-    mostGuessedGrid, 
-    correctPercentageGrid 
+const SummaryModal = ({
+    isOpen,
+    onClose,
+    totalGames,
+    averageScore,
+    rarityScores,
+    mostGuessedGrid,
+    correctPercentageGrid,
+    rows,
+    columns
 }) => {
-    if (!isOpen) return null; // ✅ Hide when not open
+    if (!isOpen) return null;  // Hide the modal if not open
 
     console.log("Summary Modal Data:", {
         totalGames,
@@ -24,64 +26,68 @@ const SummaryModal = ({
         <div className="modal-overlay">
             <div className="modal-content">
                 <h2>Game Summary</h2>
-
                 <p><strong>Total Games Played:</strong> {totalGames}</p>
                 <p><strong>Average Score:</strong> {averageScore}</p>
 
-                {/* ✅ Rarity Scores */}
-                <h3>Rarity Scores</h3>
-                <ul>
-    {rarityScores && Object.keys(rarityScores).length > 0 ? (
-        Object.entries(rarityScores).map(([user, score]) => (
-            <li key={user}>{user}: {score}</li>
-        ))
-    ) : (
-        <p>No rarity scores available.</p>
-    )}
-</ul>
+                {/* ✅ Most Popular Guesses Grid */}
+                <h3>Most Popular Guesses</h3>
+                <div className="grid-wrapper">
+                    {/* Column Headers */}
+                    <div className="column-headers">
+                        <div className="empty-cell"></div>
+                        {columns.map((col, index) => (
+                            <div key={index} className="header-cell">{col}</div>
+                        ))}
+                    </div>
 
-{/* ✅ Most Guessed Grid - 3x3 Layout */}
-<h3>Most Popular Guesses</h3>
-<div className="summary-grid">
-    {mostGuessedGrid && mostGuessedGrid.length > 0 ? (
-        mostGuessedGrid.flat().map((cell, index) => (
-            <div key={index} className="summary-cell rider-cell">
-                {/* ✅ Guess Percentage in Top Left */}
-                <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
-
-                {/* ✅ Rider Image */}
-                {cell.image ? (
-                    <img src={cell.image} alt={cell.rider} className="rider-image" />
-                ) : (
-                    <div className="no-image">No Image</div>
-                )}
-
-                {/* ✅ Rider Name Banner */}
-                <div className="rider-name-banner">{cell.rider}</div>
-            </div>
-        ))
-    ) : (
-        <p>No data available</p>
-    )}
-</div>
-
-{/* ✅ Correct Guess Percentages - 3x3 Layout */}
-<h3>Correct Guess Percentages</h3>
-<div className="summary-grid">
-    {correctPercentageGrid && correctPercentageGrid.length > 0 ? (
-        correctPercentageGrid.flat().map((cell, index) => (
-            <div key={index} className="summary-cell rider-cell">
-                {/* ✅ Centered Percentage */}
-                <div className="centered-percentage">
-                    {cell.completion_percentage || 0}%
+                    {/* Grid Body */}
+                    <div className="grid-body">
+                        {rows.map((row, rowIndex) => (
+                            <div key={rowIndex} className="grid-row">
+                                <div className="header-cell">{row}</div>
+                                {mostGuessedGrid[rowIndex].map((cell, colIndex) => (
+                                    <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
+                                        <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
+                                        {cell.image ? (
+                                            <img src={cell.image} alt={cell.rider} className="rider-image" />
+                                        ) : (
+                                            <div className="no-image">No Image</div>
+                                        )}
+                                        <div className="rider-name-banner">{cell.rider}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
-        ))
-    ) : (
-        <p>No data available</p>
-    )}
-</div>
 
+                {/* ✅ Correct Guess Percentages Grid */}
+                <h3>Correct Guess Percentages</h3>
+                <div className="grid-wrapper">
+                    {/* Column Headers */}
+                    <div className="column-headers">
+                        <div className="empty-cell"></div>
+                        {columns.map((col, index) => (
+                            <div key={index} className="header-cell">{col}</div>
+                        ))}
+                    </div>
+
+                    {/* Grid Body */}
+                    <div className="grid-body">
+                        {rows.map((row, rowIndex) => (
+                            <div key={rowIndex} className="grid-row">
+                                <div className="header-cell">{row}</div>
+                                {correctPercentageGrid[rowIndex].map((cell, colIndex) => (
+                                    <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
+                                        <div className="centered-percentage">
+                                            {cell.completion_percentage || 0}%
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
                 {/* ✅ Close Button */}
                 <button onClick={onClose} className="close-button">Close</button>
