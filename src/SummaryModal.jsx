@@ -40,17 +40,24 @@ const SummaryModal = ({
     )}
 </ul>
 
-                {/* ✅ Most Guessed Grid */}
+{/* ✅ Most Guessed Grid - 3x3 Layout */}
 <h3>Most Popular Guesses</h3>
 <div className="summary-grid">
     {mostGuessedGrid && mostGuessedGrid.length > 0 ? (
-        mostGuessedGrid.map((row, rowIndex) => (
-            <div key={rowIndex} className="summary-row">
-                {row.map((cell, colIndex) => (
-                    <div key={colIndex} className="summary-cell">
-                        {cell.rider} ({cell.guess_percentage || 0}%)
-                    </div>
-                ))}
+        mostGuessedGrid.flat().map((cell, index) => (
+            <div key={index} className="summary-cell rider-cell">
+                {/* ✅ Guess Percentage in Top Left */}
+                <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
+
+                {/* ✅ Rider Image */}
+                {cell.image ? (
+                    <img src={cell.image} alt={cell.rider} className="rider-image" />
+                ) : (
+                    <div className="no-image">No Image</div>
+                )}
+
+                {/* ✅ Rider Name Banner */}
+                <div className="rider-name-banner">{cell.rider}</div>
             </div>
         ))
     ) : (
@@ -58,23 +65,23 @@ const SummaryModal = ({
     )}
 </div>
 
-{/* ✅ Correct Guess Percentages Grid */}
+{/* ✅ Correct Guess Percentages - 3x3 Layout */}
 <h3>Correct Guess Percentages</h3>
 <div className="summary-grid">
     {correctPercentageGrid && correctPercentageGrid.length > 0 ? (
-        correctPercentageGrid.map((row, rowIndex) => (
-            <div key={rowIndex} className="summary-row">
-                {row.map((cell, colIndex) => (
-                    <div key={colIndex} className="summary-cell">
-                        {cell.completion_percentage || 0}%
-                    </div>
-                ))}
+        correctPercentageGrid.flat().map((cell, index) => (
+            <div key={index} className="summary-cell rider-cell">
+                {/* ✅ Centered Percentage */}
+                <div className="centered-percentage">
+                    {cell.completion_percentage || 0}%
+                </div>
             </div>
         ))
     ) : (
         <p>No data available</p>
     )}
 </div>
+
 
                 {/* ✅ Close Button */}
                 <button onClick={onClose} className="close-button">Close</button>

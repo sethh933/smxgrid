@@ -10,19 +10,24 @@
     justify-content: center;
 }
 
+/* ✅ Scrollable Modal */
 .modal-content {
-    background: #313030;
+    background: #333;
     padding: 20px;
     border-radius: 10px;
-    width: 500px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
     text-align: center;
 }
 
+/* ✅ Proper 3x3 Grid Layout */
 .summary-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin: 10px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
+    gap: 5px;  /* ✅ Reduce spacing between cells */
+    margin: 20px 0;
 }
 
 .summary-row {
@@ -51,10 +56,71 @@
     margin-top: 10px;
 }
 
-  .summary-modal {
+.summary-modal {
     background: #222;
     padding: 20px;
     border-radius: 10px;
     max-width: 600px;
     text-align: center;
   }  
+
+/* ✅ Equal-sized Rider Cells */
+.rider-cell {
+    position: relative;
+    background: #222;
+    color: white;
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+
+/* ✅ Rider Image fills the cell properly */
+.rider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+/* ✅ Rider Name Banner at the Bottom */
+.rider-name-banner {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    font-size: 10px;
+}
+/* ✅ Guess Percentage in top-left corner */
+.guess-percentage {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* ✅ Centered Percentage for Correct Guess Percentages */
+.centered-percentage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /*background: rgba(0, 0, 0, 0.8);*/
+    color: white;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+}

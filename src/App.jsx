@@ -70,12 +70,13 @@ const fetchGameSummary = async () => {
 
       console.log("Game Summary API Response:", data);
 
-      // ✅ Transform the most guessed riders into a 3x3 grid
+      // ✅ Transform the most guessed riders into a 3x3 grid (Include Image)
       const formattedMostGuessed = rows.map(row =>
-          columns.map(col =>
-              data.most_guessed_riders.find(item => item.row === row && item.col === col) || { rider: "No data", guess_percentage: 0 }
-          )
-      );
+        columns.map(col => {
+            const found = data.most_guessed_riders.find(item => item.row === row && item.col === col);
+            return found || { rider: "No data", guess_percentage: 0, image: null };
+        })
+    );
 
       // ✅ Transform correct guess percentages into a 3x3 grid
       const formattedCorrectPercentages = rows.map(row =>
