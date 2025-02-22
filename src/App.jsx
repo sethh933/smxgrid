@@ -166,20 +166,21 @@ const fetchGameSummary = async () => {
         alert(response.data.message);
 
         if (response.data.message.includes("✅")) {
-            setGrid(prevGrid => {
-                const newGrid = prevGrid.map(row => [...row]);
-                newGrid[selectedCell.row][selectedCell.col] = {
-                    name: selectedRider,
-                    image: response.data.image_url || "",
-                };
-                return newGrid;
-            });
-
-            setIncorrectGuesses(prev => {
-                const updatedGuesses = { ...prev };
-                delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
-                return updatedGuesses;
-            });
+          setGrid(prevGrid => {
+              const newGrid = prevGrid.map(row => [...row]);
+              newGrid[selectedCell.row][selectedCell.col] = {
+                  name: selectedRider,
+                  image: response.data.image_url || "",
+                  guessPercentage: response.data.guess_percentage || 0, // ✅ Add the percentage here
+              };
+              return newGrid;
+          });
+        
+          setIncorrectGuesses(prev => {
+            const updatedGuesses = { ...prev };
+            delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
+            return updatedGuesses;
+        });
         } else {
             setIncorrectGuesses(prev => ({
                 ...prev,
@@ -242,14 +243,18 @@ const fetchGameSummary = async () => {
                       className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                     >
-                      {cell && cell.image ? (
-                        <>
-                          <img src={cell.image} alt={cell.name} className="rider-image" />
-                          <div className="rider-name-banner">{cell.name}</div>
-                        </>
-                      ) : (
-                        cell.name || ""
-                      )}
+{cell && cell.image ? (
+  <>
+    <img src={cell.image} alt={cell.name} className="rider-image" />
+    <div className="rider-name-banner">{cell.name}</div>
+    {cell.guess_percentage !== undefined && (
+      <div className="guess-percentage">{cell.guess_percentage}%</div>
+    )}
+  </>
+) : (
+  cell.name || ""
+)}
+
                     </div>
                   ))}
                 </div>

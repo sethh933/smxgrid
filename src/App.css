@@ -215,6 +215,21 @@ body {
   background: #218838;
 }
 
+/* ✅ Proper Guess Percentage Styling */
+.guess-percentage {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  background: rgba(255, 255, 255, 0.8);
+  color: black;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 1;  /* Ensure it's above the image */
+}
+
+
 
 
 
