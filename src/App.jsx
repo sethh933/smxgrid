@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 import SummaryModal from "./SummaryModal.jsx"; // ✅ Import Summary Modal
+import { v4 as uuidv4 } from 'uuid';
+
 
 
 function App() {
@@ -16,34 +18,64 @@ function App() {
   const [gameSummary, setGameSummary] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [guestId, setGuestId] = useState(null);
+
+// ✅ Generate or Retrieve UUID from LocalStorage
+useEffect(() => {
+  let storedGuestId = localStorage.getItem('guest_id');
+  if (!storedGuestId) {
+    storedGuestId = uuidv4(); // Generate a new UUID
+    localStorage.setItem('guest_id', storedGuestId);
+  }
+  setGuestId(storedGuestId);
+}, []);
+
+useEffect(() => {
+  if (guestId) {
+    startGame(guestId);
+  }
+}, [guestId]);
 
 
-  // Fetch grid data from backend
-  useEffect(() => {
-    const initializeGrid = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/grid");  // ✅ Fetch Active Grid from SQL
-        console.log("Fetched Grid Data:", response.data);
-        setRows(response.data.rows);
-        setColumns(response.data.columns);
+// ✅ Fetch grid data from backend only after guestId is set
+useEffect(() => {
+  if (!guestId) return; // Wait until guestId is available
 
-        if (response.data.grid_data) {
-          const formattedGrid = response.data.rows.map(row =>
-            response.data.columns.map(col => response.data.grid_data[`${row},${col}`] || "")
-          );
-          setGrid(formattedGrid);
-        } else {
-          console.error("Grid data is empty:", response.data);
-        }
+  const initializeGrid = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/grid?guest_id=${guestId}`);
+      console.log("Fetched Grid Data:", response.data);
+      setRows(response.data.rows);
+      setColumns(response.data.columns);
 
-        setGuessesLeft(response.data.remaining_attempts);
-      } catch (error) {
-        console.error("Error initializing grid:", error);
+      if (response.data.grid_data) {
+        const formattedGrid = response.data.rows.map(row =>
+          response.data.columns.map(col => response.data.grid_data[`${row},${col}`] || "")
+        );
+        setGrid(formattedGrid);
+      } else {
+        console.error("Grid data is empty:", response.data);
       }
-    };
 
-    initializeGrid();
-  }, []);
+      setGuessesLeft(response.data.remaining_attempts);
+    } catch (error) {
+      console.error("Error initializing grid:", error);
+    }
+  };
+
+  initializeGrid();
+}, [guestId]);  // ✅ This now depends on guestId
+
+
+const startGame = async (guestId) => {
+  try {
+    const response = await axios.post(`http://localhost:8000/start-game?guest_id=${guestId}`);
+    console.log("Game started:", response.data);
+  } catch (error) {
+    console.error("Error starting game:", error.response?.data?.detail || error.message);
+  }
+};
+
 
   // Fetch game summary when game ends
 useEffect(() => {
@@ -65,39 +97,38 @@ useEffect(() => {
 
 const fetchGameSummary = async () => {
   try {
-      const response = await axios.get("http://localhost:8000/game-summary");
-      const data = response.data;
+    const response = await axios.get(`http://localhost:8000/game-summary?guest_id=${guestId}`);
+    const data = response.data;
 
-      console.log("Game Summary API Response:", data);
+    console.log("Game Summary API Response:", data);
 
-      // ✅ Transform the most guessed riders into a 3x3 grid (Include Image)
-      const formattedMostGuessed = rows.map(row =>
-        columns.map(col => {
-            const found = data.most_guessed_riders.find(item => item.row === row && item.col === col);
-            return found || { rider: "No data", guess_percentage: 0, image: null };
-        })
+    const formattedMostGuessed = rows.map(row =>
+      columns.map(col => {
+        const found = data.most_guessed_riders.find(item => item.row === row && item.col === col);
+        return found || { rider: "No data", guess_percentage: 0, image: null };
+      })
     );
 
-      // ✅ Transform correct guess percentages into a 3x3 grid
-      const formattedCorrectPercentages = rows.map(row =>
-          columns.map(col =>
-              data.cell_completion_rates.find(item => item.row === row && item.col === col) || { completion_percentage: 0 }
-          )
-      );
+    const formattedCorrectPercentages = rows.map(row =>
+      columns.map(col =>
+        data.cell_completion_rates.find(item => item.row === row && item.col === col) || { completion_percentage: 0 }
+      )
+    );
 
-      console.log("Formatted Most Guessed Grid:", formattedMostGuessed);
-      console.log("Formatted Correct Guess Percentages:", formattedCorrectPercentages);
+    console.log("Formatted Most Guessed Grid:", formattedMostGuessed);
+    console.log("Formatted Correct Guess Percentages:", formattedCorrectPercentages);
 
-      setGameSummary({
-          ...data,
-          mostGuessedGrid: formattedMostGuessed,
-          correctPercentageGrid: formattedCorrectPercentages
-      });
+    setGameSummary({
+      ...data,
+      mostGuessedGrid: formattedMostGuessed,
+      correctPercentageGrid: formattedCorrectPercentages
+    });
 
   } catch (error) {
-      console.error("Error fetching game summary:", error);
+    console.error("Error fetching game summary:", error);
   }
 };
+
 
 
 
@@ -157,10 +188,11 @@ const fetchGameSummary = async () => {
         console.log("Submitting guess:", requestBody); // ✅ Debugging log
 
         const response = await axios.post(
-            `http://localhost:8000/guess?user_id=1`,  // ✅ Add user_id as query param
-            requestBody,
-            { headers: { "Content-Type": "application/json" } }
+          `http://localhost:8000/guess?guest_id=${guestId}`,  // ✅ Now passing guest_id dynamically
+          requestBody,
+          { headers: { "Content-Type": "application/json" } }
         );
+        
 
         console.log("Guess response:", response.data); // ✅ Debugging log
         alert(response.data.message);
@@ -202,15 +234,16 @@ const fetchGameSummary = async () => {
   // Handle Give Up
   const handleGiveUp = async () => {
     try {
-        const response = await axios.post("http://localhost:8000/give-up");
-        alert(response.data.message);
-        setGuessesLeft(0);
-        setGameOver(true);
-        setIsSummaryOpen(true); // ✅ Open summary modal when giving up
+      const response = await axios.post(`http://localhost:8000/give-up?guest_id=${guestId}`);
+      alert(response.data.message);
+      setGuessesLeft(0);
+      setGameOver(true);
+      setIsSummaryOpen(true); // ✅ Open summary modal when giving up
     } catch (error) {
-        console.error("Error giving up:", error);
+      console.error("Error giving up:", error);
     }
-};
+  };
+  
 
 
   return (
