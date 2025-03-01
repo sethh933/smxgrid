@@ -19,6 +19,8 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [guestId, setGuestId] = useState(null);
+  const [gridId, setGridId] = useState(null); // Track the active grid ID
+
 
 // ✅ Generate or Retrieve UUID from LocalStorage
 useEffect(() => {
@@ -47,7 +49,7 @@ useEffect(() => {
       console.log("Fetched Grid Data:", response.data);
       setRows(response.data.rows);
       setColumns(response.data.columns);
-
+  
       if (response.data.grid_data) {
         const formattedGrid = response.data.rows.map(row =>
           response.data.columns.map(col => response.data.grid_data[`${row},${col}`] || "")
@@ -56,16 +58,43 @@ useEffect(() => {
       } else {
         console.error("Grid data is empty:", response.data);
       }
-
+  
       setGuessesLeft(response.data.remaining_attempts);
+      setGridId(response.data.grid_id); // ✅ Store the grid ID for the daily game
     } catch (error) {
       console.error("Error initializing grid:", error);
     }
   };
-
+  
   initializeGrid();
 }, [guestId]);  // ✅ This now depends on guestId
 
+const resetGameForNewDay = () => {
+  localStorage.removeItem('current_game');
+  setGameOver(false);
+  setGuessesLeft(9);
+  setGrid(Array(3).fill(Array(3).fill("")));
+  setSelectedCell(null);
+  setIncorrectGuesses({});
+  setGameSummary(null);
+};
+
+// ✅ Check if the grid ID in localStorage is different from the current grid
+// ✅ Check if the grid ID in localStorage is different from the current grid
+useEffect(() => {
+  const existingGame = JSON.parse(localStorage.getItem('current_game'));
+
+  if (guestId && gridId) {
+    if (!existingGame || existingGame.grid_id !== gridId) {
+      resetGameForNewDay(); // Reset game if it's a new daily grid
+      startGame(guestId); // Start a new game after reset
+      localStorage.setItem(
+        'current_game',
+        JSON.stringify({ guest_id: guestId, grid_id: gridId })
+      );
+    }
+  }
+}, [guestId, gridId]);
 
 const startGame = async (guestId) => {
   try {
