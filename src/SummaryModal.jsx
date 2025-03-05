@@ -27,7 +27,7 @@ const SummaryModal = ({
             <div className="modal-content">
                 <h2>Game Summary</h2>
                 <p><strong>Total Games Played:</strong> {totalGames}</p>
-                <p><strong>Average Score:</strong> {averageScore}</p>
+                <p><strong>Average Score:</strong> {parseFloat(averageScore).toFixed(2)}</p>
 
                 {/* ✅ Most Popular Guesses Grid */}
                 <h3>Most Popular Guesses</h3>
