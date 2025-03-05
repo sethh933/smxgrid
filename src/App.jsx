@@ -21,6 +21,18 @@ function App() {
   const [guestId, setGuestId] = useState(null);
   const [gridId, setGridId] = useState(null); // Track the active grid ID
 
+  // ✅ Close the input container when clicking anywhere else
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (selectedCell && !event.target.closest(".input-container") && !event.target.closest(".grid-cell")) {
+      setSelectedCell(null);
+    }
+  };
+
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, [selectedCell]);
+
 
 // ✅ Generate or Retrieve UUID from LocalStorage
 useEffect(() => {
@@ -80,7 +92,6 @@ const resetGameForNewDay = () => {
 };
 
 // ✅ Check if the grid ID in localStorage is different from the current grid
-// ✅ Check if the grid ID in localStorage is different from the current grid
 useEffect(() => {
   const existingGame = JSON.parse(localStorage.getItem('current_game'));
 
@@ -120,6 +131,7 @@ useEffect(() => {
       fetchGameSummary();
       setGameOver(true); 
       setIsSummaryOpen(true); // ✅ Open summary modal when game ends
+      setSelectedCell(null); // ✅ Ensure input box disappears when the summary opens
   }
 }, [guessesLeft]);
 
@@ -163,12 +175,17 @@ const fetchGameSummary = async () => {
 
   // Handle cell selection
   const handleCellClick = (rowIndex, colIndex) => {
-    if (guessesLeft === 0) return;
-
-    setSelectedCell({ row: rowIndex, col: colIndex });
+    if (guessesLeft === 0) return; // Prevent input after game over
+  
+    // ✅ If already selected, close it. Otherwise, open it
+    setSelectedCell(prev =>
+      prev?.row === rowIndex && prev?.col === colIndex ? null : { row: rowIndex, col: colIndex }
+    );
+  
     setRiderName("");
     setSuggestions([]);
   };
+  
 
   // Handle input change
   const handleInputChange = async (event) => {
@@ -268,6 +285,7 @@ const fetchGameSummary = async () => {
       setGuessesLeft(0);
       setGameOver(true);
       setIsSummaryOpen(true); // ✅ Open summary modal when giving up
+      setSelectedCell(null); // ✅ Ensure input box disappears when the summary opens
     } catch (error) {
       console.error("Error giving up:", error);
     }
@@ -327,7 +345,7 @@ const fetchGameSummary = async () => {
           
 
           {selectedCell && (
-  <div className="input-container">
+  <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
     <input 
       type="text" 
       placeholder="Enter rider name..." 

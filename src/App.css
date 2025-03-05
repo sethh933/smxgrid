@@ -111,19 +111,25 @@ body {
 
 /* Input Box */
 .input-container {
-  position: absolute; /* Positions it in a set place */
-  top: 50px; /* Adjust this based on your UI */
+  position: absolute;
+  top: 50px;
   left: 50%;
-  transform: translateX(-50%); /* Centers the input box */
-  background: rgba(0, 0, 0, 0.8); /* Dark background */
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
   padding: 10px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  z-index: 1000; /* Ensures it stays above everything */
+  z-index: 1000;
+  transition: opacity 0.3s ease;
 }
+
+.input-container.hidden {
+  display: none;  /* ✅ Hide when no cell is selected */
+}
+
 
 /* Autocomplete List */
 .autocomplete-list {
