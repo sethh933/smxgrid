@@ -161,6 +161,7 @@ const fetchGameSummary = async () => {
 
     setGameSummary({
       ...data,
+      rarityScores: data.rarity_score,  // ✅ Ensure rarity score is stored
       mostGuessedGrid: formattedMostGuessed,
       correctPercentageGrid: formattedCorrectPercentages
     });
@@ -385,7 +386,7 @@ const fetchGameSummary = async () => {
         onClose={() => setIsSummaryOpen(false)}
         totalGames={gameSummary.total_games_played}
         averageScore={gameSummary.average_score}
-        rarityScores={gameSummary.rarity_scores}
+        rarityScores={gameSummary.rarity_score}  // ✅ Matches API response key
         mostGuessedGrid={gameSummary.mostGuessedGrid || []}
         correctPercentageGrid={gameSummary.correctPercentageGrid || []}
         rows={rows}  // ✅ Pass rows

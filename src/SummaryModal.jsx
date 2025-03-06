@@ -28,6 +28,8 @@ const SummaryModal = ({
                 <h2>Game Summary</h2>
                 <p><strong>Total Games Played:</strong> {totalGames}</p>
                 <p><strong>Average Score:</strong> {parseFloat(averageScore).toFixed(2)}</p>
+                <p><strong>Rarity Score:</strong> {rarityScores !== undefined ? rarityScores : "N/A"}</p>
+
 
                 {/* ✅ Most Popular Guesses Grid */}
                 <h3>Most Popular Guesses</h3>
