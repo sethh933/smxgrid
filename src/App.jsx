@@ -82,14 +82,31 @@ useEffect(() => {
 }, [guestId]);  // ✅ This now depends on guestId
 
 const resetGameForNewDay = () => {
-  localStorage.removeItem('current_game');
+  const previousGames = JSON.parse(localStorage.getItem("previous_games")) || {};
+  
+  // ✅ Save the completed game before clearing it
+  if (gridId && localStorage.getItem(`game_state_${gridId}`)) {
+    previousGames[`game_state_${gridId}`] = JSON.parse(localStorage.getItem(`game_state_${gridId}`));
+  }
+
+  localStorage.setItem("previous_games", JSON.stringify(previousGames));
+
+  // ✅ Do NOT remove previous games; just clear for new grid
+  localStorage.removeItem(`game_state_${gridId}`);
+  localStorage.setItem(
+    'current_game',
+    JSON.stringify({ guest_id: guestId, grid_id: gridId })
+  );
+
   setGameOver(false);
   setGuessesLeft(9);
-  setGrid(Array(3).fill(Array(3).fill("")));
+  setGrid(Array(3).fill(Array(3).fill(""))); 
   setSelectedCell(null);
   setIncorrectGuesses({});
   setGameSummary(null);
 };
+
+
 
 // ✅ Check if the grid ID in localStorage is different from the current grid
 useEffect(() => {
@@ -97,8 +114,8 @@ useEffect(() => {
 
   if (guestId && gridId) {
     if (!existingGame || existingGame.grid_id !== gridId) {
-      resetGameForNewDay(); // Reset game if it's a new daily grid
-      startGame(guestId); // Start a new game after reset
+      resetGameForNewDay();
+      startGame(guestId);
       localStorage.setItem(
         'current_game',
         JSON.stringify({ guest_id: guestId, grid_id: gridId })
@@ -106,6 +123,7 @@ useEffect(() => {
     }
   }
 }, [guestId, gridId]);
+
 
 const startGame = async (guestId) => {
   try {
@@ -116,6 +134,16 @@ const startGame = async (guestId) => {
   }
 };
 
+useEffect(() => {
+  const savedGameState = localStorage.getItem(`game_state_${gridId}`);
+  if (savedGameState) {
+    const parsedState = JSON.parse(savedGameState);
+    setGrid(parsedState.grid);
+    setGuessesLeft(parsedState.guessesLeft);
+    setIncorrectGuesses(parsedState.incorrectGuesses || {});
+    setGameOver(parsedState.gameOver);
+  }
+}, [gridId]); // Load only when gridId changes
 
   // Fetch game summary when game ends
 useEffect(() => {
@@ -216,65 +244,81 @@ const fetchGameSummary = async () => {
 
   
 
-  // Handle guess submission
-  const handleSubmit = async (selectedRider = riderName) => {
-    if (!selectedCell || selectedRider.trim() === "") return;
+const handleSubmit = async (selectedRider = riderName) => {
+  if (!selectedCell || selectedRider.trim() === "") return;
+  if (guessesLeft <= 0) {
+    alert("No more attempts left!");
+    return;
+  }
 
-    if (guessesLeft <= 0) {
-        alert("No more attempts left!");
-        return;
+  try {
+    const requestBody = {
+      rider: selectedRider,
+      row: rows[selectedCell.row],
+      column: columns[selectedCell.col],
+    };
+
+    console.log("Submitting guess:", requestBody);
+
+    const response = await axios.post(
+      `http://localhost:8000/guess?guest_id=${guestId}`,
+      requestBody,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    console.log("Guess response:", response.data);
+    alert(response.data.message);
+
+    // ✅ Always save game state (even if incorrect guess)
+    setGuessesLeft(response.data.remaining_attempts);
+
+    const gameState = {
+      grid,
+      guessesLeft: response.data.remaining_attempts,
+      incorrectGuesses, // Track incorrect guesses
+      gameOver: response.data.remaining_attempts === 0,
+    };
+
+    localStorage.setItem(`game_state_${gridId}`, JSON.stringify(gameState));
+
+    if (!response.data.rider) {
+      // ❌ Incorrect guess, do not update the grid
+      return;
     }
 
-    try {
-        const requestBody = {
-            rider: selectedRider,
-            row: rows[selectedCell.row], 
-            column: columns[selectedCell.col], 
-        };
+    // ✅ Correct guess: update the grid
+    setGrid(prevGrid => {
+      const newGrid = prevGrid.map(row => [...row]);
+      newGrid[selectedCell.row][selectedCell.col] = {
+        name: selectedRider,
+        image: response.data.image_url || "",
+        guess_percentage: response.data.guess_percentage || 0,
+      };
 
-        console.log("Submitting guess:", requestBody); // ✅ Debugging log
+      // ✅ Save the updated state after correct guess
+      const updatedGameState = {
+        grid: newGrid,
+        guessesLeft: response.data.remaining_attempts,
+        incorrectGuesses,
+        gameOver: response.data.remaining_attempts === 0,
+      };
 
-        const response = await axios.post(
-          `http://localhost:8000/guess?guest_id=${guestId}`,  // ✅ Now passing guest_id dynamically
-          requestBody,
-          { headers: { "Content-Type": "application/json" } }
-        );
-        
+      localStorage.setItem(`game_state_${gridId}`, JSON.stringify(updatedGameState));
+      return newGrid;
+    });
 
-        console.log("Guess response:", response.data); // ✅ Debugging log
-        alert(response.data.message);
+    setRiderName("");
+    setSelectedCell(null);
 
-        if (response.data.message.includes("✅")) {
-          setGrid(prevGrid => {
-            const newGrid = prevGrid.map(row => [...row]);
-            newGrid[selectedCell.row][selectedCell.col] = {
-              name: selectedRider,
-              image: response.data.image_url || "",
-              guess_percentage: response.data.guess_percentage || 0,  // ✅ Add this line
-            };
-            return newGrid;
-          });
-        
-          setIncorrectGuesses(prev => {
-            const updatedGuesses = { ...prev };
-            delete updatedGuesses[`${selectedCell.row},${selectedCell.col}`];
-            return updatedGuesses;
-          });
-        } else {
-            setIncorrectGuesses(prev => ({
-                ...prev,
-                [`${selectedCell.row},${selectedCell.col}`]: selectedRider,
-            }));
-        }
-
-        setGuessesLeft(response.data.remaining_attempts);
-        setRiderName("");
-        setSelectedCell(null);
-    } catch (error) {
-        console.error("Error submitting guess:", error);
-        alert(error.response?.data?.detail || "An error occurred");
-    }
+  } catch (error) {
+    console.error("Error submitting guess:", error);
+    alert(error.response?.data?.detail || "An error occurred");
+  }
 };
+
+
+
+
 
   
 
@@ -285,12 +329,22 @@ const fetchGameSummary = async () => {
       alert(response.data.message);
       setGuessesLeft(0);
       setGameOver(true);
-      setIsSummaryOpen(true); // ✅ Open summary modal when giving up
-      setSelectedCell(null); // ✅ Ensure input box disappears when the summary opens
+      setIsSummaryOpen(true);
+      setSelectedCell(null);
+  
+      // ✅ Save updated game state
+      localStorage.setItem(`game_state_${gridId}`, JSON.stringify({
+        grid,
+        guessesLeft: 0,
+        incorrectGuesses,
+        gameOver: true
+      }));
+  
     } catch (error) {
       console.error("Error giving up:", error);
     }
   };
+  
   
 
 
