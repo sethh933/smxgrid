@@ -81,9 +81,30 @@ useEffect(() => {
   initializeGrid();
 }, [guestId]);  // ✅ This now depends on guestId
 
+useEffect(() => {
+  if (!guestId || !gridId) return; // Wait until both guestId and gridId are available
+
+  const checkExistingGame = async () => {
+    try {
+      const response = await axios.post(`http://localhost:8000/start-game?guest_id=${guestId}`);
+      console.log("Start game response:", response.data);
+
+      // ✅ Store game_id only if it exists
+      if (response.data.game_id) {
+        localStorage.setItem("game_id", response.data.game_id);
+      }
+    } catch (error) {
+      console.error("Error checking existing game:", error.response?.data?.detail || error.message);
+    }
+  };
+
+  checkExistingGame();
+}, [guestId, gridId]); // ✅ Runs only when guestId and gridId are available
+
+
 const resetGameForNewDay = () => {
   const previousGames = JSON.parse(localStorage.getItem("previous_games")) || {};
-  
+
   // ✅ Save the completed game before clearing it
   if (gridId && localStorage.getItem(`game_state_${gridId}`)) {
     previousGames[`game_state_${gridId}`] = JSON.parse(localStorage.getItem(`game_state_${gridId}`));
@@ -91,7 +112,7 @@ const resetGameForNewDay = () => {
 
   localStorage.setItem("previous_games", JSON.stringify(previousGames));
 
-  // ✅ Do NOT remove previous games; just clear for new grid
+  // ✅ Clear only the current game state but keep previous grids
   localStorage.removeItem(`game_state_${gridId}`);
   localStorage.setItem(
     'current_game',
@@ -105,6 +126,7 @@ const resetGameForNewDay = () => {
   setIncorrectGuesses({});
   setGameSummary(null);
 };
+
 
 
 
@@ -135,15 +157,19 @@ const startGame = async (guestId) => {
 };
 
 useEffect(() => {
+  if (!gridId) return;  // Ensure we only load state when gridId is available
+
   const savedGameState = localStorage.getItem(`game_state_${gridId}`);
   if (savedGameState) {
+    console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
-    setGrid(parsedState.grid);
-    setGuessesLeft(parsedState.guessesLeft);
+    setGrid(parsedState.grid || Array(3).fill(Array(3).fill("")));
+    setGuessesLeft(parsedState.guessesLeft ?? 9);
     setIncorrectGuesses(parsedState.incorrectGuesses || {});
-    setGameOver(parsedState.gameOver);
+    setGameOver(parsedState.gameOver ?? false);
   }
-}, [gridId]); // Load only when gridId changes
+}, [gridId]);  // ✅ Only runs when gridId changes
+
 
   // Fetch game summary when game ends
 useEffect(() => {
@@ -252,6 +278,12 @@ const handleSubmit = async (selectedRider = riderName) => {
   }
 
   try {
+    // ✅ Ensure the game exists before submitting the first guess
+    if (!localStorage.getItem("game_id")) {
+      console.log("No game found, starting a new game...");
+      await axios.post(`http://localhost:8000/start-game?guest_id=${guestId}`);
+    }
+
     const requestBody = {
       rider: selectedRider,
       row: rows[selectedCell.row],
@@ -269,24 +301,12 @@ const handleSubmit = async (selectedRider = riderName) => {
     console.log("Guess response:", response.data);
     alert(response.data.message);
 
-    // ✅ Always save game state (even if incorrect guess)
     setGuessesLeft(response.data.remaining_attempts);
 
-    const gameState = {
-      grid,
-      guessesLeft: response.data.remaining_attempts,
-      incorrectGuesses, // Track incorrect guesses
-      gameOver: response.data.remaining_attempts === 0,
-    };
-
-    localStorage.setItem(`game_state_${gridId}`, JSON.stringify(gameState));
-
     if (!response.data.rider) {
-      // ❌ Incorrect guess, do not update the grid
       return;
     }
 
-    // ✅ Correct guess: update the grid
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
       newGrid[selectedCell.row][selectedCell.col] = {
@@ -295,15 +315,15 @@ const handleSubmit = async (selectedRider = riderName) => {
         guess_percentage: response.data.guess_percentage || 0,
       };
 
-      // ✅ Save the updated state after correct guess
-      const updatedGameState = {
+      // ✅ Save updated game state to localStorage
+      const gameState = {
         grid: newGrid,
         guessesLeft: response.data.remaining_attempts,
         incorrectGuesses,
         gameOver: response.data.remaining_attempts === 0,
       };
+      localStorage.setItem(`game_state_${gridId}`, JSON.stringify(gameState));
 
-      localStorage.setItem(`game_state_${gridId}`, JSON.stringify(updatedGameState));
       return newGrid;
     });
 
@@ -317,10 +337,6 @@ const handleSubmit = async (selectedRider = riderName) => {
 };
 
 
-
-
-
-  
 
   // Handle Give Up
   const handleGiveUp = async () => {
@@ -445,6 +461,8 @@ const handleSubmit = async (selectedRider = riderName) => {
         correctPercentageGrid={gameSummary.correctPercentageGrid || []}
         rows={rows}  // ✅ Pass rows
         columns={columns}  // ✅ Pass columns
+        gridId={gridId}  // ✅ Pass the Grid ID
+        grid={grid}  // ✅ Pass the actual grid state
     />
 )}
 
