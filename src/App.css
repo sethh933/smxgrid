@@ -216,6 +216,19 @@ body {
   transition: transform 0.2s ease;
 }
 
+/* "View Summary" Button */
+.summary-button {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
 .give-up-button:hover {
   background-color: darkred;
   transform: scale(1.01);
@@ -225,13 +238,13 @@ body {
   background: #218838;
 }
 
-/* Wrapper for Grid & Side Panel */
+/* ✅ Adjust Grid Position (Move Higher) */
 .game-layout {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 50px; /* Space between grid & side panel */
-  margin-top: 20px;
+  gap: 50px; /* Space between grid & side panels */
+  margin-top: -200px; /* Move the grid up */
   position: relative;
 }
 
