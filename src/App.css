@@ -202,33 +202,66 @@ body {
   margin-top: 10px;
 }
 
+
+/* "Give Up" Button */
 .give-up-button {
-  margin-top: 10px;
-  padding: 8px 15px;
-  font-size: 16px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: bold;
   background-color: red;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
 .give-up-button:hover {
   background-color: darkred;
+  transform: scale(1.01);
 }
 
 .select-button:hover {
   background: #218838;
 }
 
+/* Wrapper for Grid & Side Panel */
+.game-layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px; /* Space between grid & side panel */
+  margin-top: 20px;
+  position: relative;
+}
 
+/* Side Panel (Guess Counter & Give Up Button) */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  right: -200px; /* Move it to the right of the grid */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%); /* Adjust to be perfectly centered */
+}
 
+/* Guess Counter */
+.guess-counter {
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-
-
-
-
+/* Guess Counter Label */
+.guess-counter-label {
+  font-size: 14px;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
 
 
 

@@ -366,109 +366,114 @@ const handleSubmit = async (selectedRider = riderName) => {
 
   return (
     <div className="container">
-      <h1>smxmuse grid</h1>
-      <div className="give-up-container">
-  <p>Guesses Left: {guessesLeft}</p>
-  {gameOver ? (
-    <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
-  ) : (
-    <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
-  )}
-</div>
-        <>
-          <div className="grid-wrapper">
-            <div className="column-headers">
-              <div className="empty-cell"></div>
-              {columns.map((col, index) => (
-                <div key={index} className="header-cell">{col}</div>
-              ))}
-            </div>
 
-            <div className="grid-body">
-              {rows.map((row, rowIndex) => (
-                <div key={rowIndex} className="grid-row">
-                  <div className="header-cell">{row}</div>
-                  {grid[rowIndex].map((cell, colIndex) => (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
-                    >
-{cell && cell.image ? (
-  <>
-    <img src={cell.image} alt={cell.name} className="rider-image" />
-    <div className="rider-name-banner">{cell.name}</div>
-    {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
-      <div className="guess-percentage">{cell.guess_percentage}%</div>
-    )}
-  </>
-) : (
-  cell.name || ""
-)}
-
-
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+  
+      {/* ✅ Wrap Grid and Side Panel */}
+      <div className="game-layout">
+        {/* ✅ Grid Section */}
+        <div className="grid-wrapper">
+          <div className="column-headers">
+            <div className="empty-cell"></div>
+            {columns.map((col, index) => (
+              <div key={index} className="header-cell">{col}</div>
+            ))}
           </div>
-          
-
-          {selectedCell && (
-  <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
-    <input 
-      type="text" 
-      placeholder="Enter rider name..." 
-      className="input-box" 
-      value={riderName} 
-      onChange={handleInputChange} 
-      autoFocus 
-    />
-
-    {/* ✅ Autocomplete Dropdown Below Input */}
-    {suggestions.length > 0 && (
-      <div className="autocomplete-list">
-        <ul>
-          {suggestions.map((suggestion, index) => (
-            <li key={index} className="suggestion-item">
-              <span>{suggestion}</span>
-              <button
-                className="select-button"
-                onClick={async () => {
-                  setRiderName(suggestion); // ✅ Updates the input field
-                  await handleSubmit(suggestion); // ✅ Automatically submits
-                }}
-              >
-                Select
-              </button>
-            </li>
-          ))}
-        </ul>
+  
+          <div className="grid-body">
+            {rows.map((row, rowIndex) => (
+              <div key={rowIndex} className="grid-row">
+                <div className="header-cell">{row}</div>
+                {grid[rowIndex].map((cell, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+                    onClick={() => handleCellClick(rowIndex, colIndex)}
+                  >
+                    {cell && cell.image ? (
+                      <>
+                        <img src={cell.image} alt={cell.name} className="rider-image" />
+                        <div className="rider-name-banner">{cell.name}</div>
+                        {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
+                          <div className="guess-percentage">{cell.guess_percentage}%</div>
+                        )}
+                      </>
+                    ) : (
+                      cell.name || ""
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+  
+        {/* ✅ Side Panel with Guess Counter & Give Up Button */}
+        <div className="side-panel">
+          <p className="guess-counter">{guessesLeft}</p>
+          <p className="guess-counter-label">Guesses Left</p>
+          {gameOver ? (
+            <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
+          ) : (
+            <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
+          )}
+        </div>
       </div>
-    )}
-  </div>
-)}
-        </>
-        {isSummaryOpen && gameSummary && (
-    <SummaryModal
-        isOpen={isSummaryOpen}
-        onClose={() => setIsSummaryOpen(false)}
-        totalGames={gameSummary.total_games_played}
-        averageScore={gameSummary.average_score}
-        rarityScores={gameSummary.rarity_score}  // ✅ Matches API response key
-        mostGuessedGrid={gameSummary.mostGuessedGrid || []}
-        correctPercentageGrid={gameSummary.correctPercentageGrid || []}
-        rows={rows}  // ✅ Pass rows
-        columns={columns}  // ✅ Pass columns
-        gridId={gridId}  // ✅ Pass the Grid ID
-        grid={grid}  // ✅ Pass the actual grid state
-    />
-)}
-
-
+  
+      {/* ✅ Input Container */}
+      {selectedCell && (
+        <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
+          <input 
+            type="text" 
+            placeholder="Enter rider name..." 
+            className="input-box" 
+            value={riderName} 
+            onChange={handleInputChange} 
+            autoFocus 
+          />
+  
+          {/* ✅ Autocomplete Dropdown */}
+          {suggestions.length > 0 && (
+            <div className="autocomplete-list">
+              <ul>
+                {suggestions.map((suggestion, index) => (
+                  <li key={index} className="suggestion-item">
+                    <span>{suggestion}</span>
+                    <button
+                      className="select-button"
+                      onClick={async () => {
+                        setRiderName(suggestion);
+                        await handleSubmit(suggestion);
+                      }}
+                    >
+                      Select
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+  
+      {/* ✅ Summary Modal */}
+      {isSummaryOpen && gameSummary && (
+        <SummaryModal
+          isOpen={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          totalGames={gameSummary.total_games_played}
+          averageScore={gameSummary.average_score}
+          rarityScores={gameSummary.rarity_score}
+          mostGuessedGrid={gameSummary.mostGuessedGrid || []}
+          correctPercentageGrid={gameSummary.correctPercentageGrid || []}
+          rows={rows}
+          columns={columns}
+          gridId={gridId}
+          grid={grid}
+        />
+      )}
     </div>
   );
+  
 }
 
 export default App;
