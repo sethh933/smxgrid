@@ -338,28 +338,44 @@ const handleSubmit = async (selectedRider = riderName) => {
 
 
 
-  // Handle Give Up
-  const handleGiveUp = async () => {
-    try {
-      const response = await axios.post(`http://localhost:8000/give-up?guest_id=${guestId}`);
-      alert(response.data.message);
-      setGuessesLeft(0);
-      setGameOver(true);
-      setIsSummaryOpen(true);
-      setSelectedCell(null);
-  
-      // ✅ Save updated game state
-      localStorage.setItem(`game_state_${gridId}`, JSON.stringify({
-        grid,
-        guessesLeft: 0,
-        incorrectGuesses,
-        gameOver: true
-      }));
-  
-    } catch (error) {
-      console.error("Error giving up:", error);
+const handleGiveUp = async () => {
+  try {
+    let storedGameId = localStorage.getItem("game_id");
+
+    // ✅ Ensure the game is started before giving up
+    if (!storedGameId) {
+      console.log("No game found, starting a new game before giving up...");
+      const startResponse = await axios.post(`http://localhost:8000/start-game?guest_id=${guestId}`);
+      console.log("Game started for Give Up:", startResponse.data);
+
+      if (startResponse.data.game_id) {
+        storedGameId = startResponse.data.game_id;
+        localStorage.setItem("game_id", storedGameId);
+      }
     }
-  };
+
+    // ✅ Now proceed with the give-up process
+    const response = await axios.post(`http://localhost:8000/give-up?guest_id=${guestId}`);
+    alert(response.data.message);
+
+    setGuessesLeft(0);
+    setGameOver(true);
+    setIsSummaryOpen(true);
+    setSelectedCell(null);
+
+    // ✅ Save updated game state
+    localStorage.setItem(`game_state_${gridId}`, JSON.stringify({
+      grid,
+      guessesLeft: 0,
+      incorrectGuesses,
+      gameOver: true
+    }));
+
+  } catch (error) {
+    console.error("Error giving up:", error);
+  }
+};
+
   
   
 
