@@ -449,26 +449,22 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # ✅ Step 1: Retrieve UserID associated with the guest
+            # ✅ Retrieve UserID associated with the guest
             cursor.execute("SELECT UserID FROM dbo.Users WHERE GuestID = ?", str(guest_id))
             user_id_result = cursor.fetchone()
             if not user_id_result:
                 raise HTTPException(status_code=404, detail="Guest user not found.")
             user_id = user_id_result[0]
 
-            # ✅ Step 2: Retrieve active GridID
+            # ✅ Retrieve active GridID
             cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active';")
             grid_id_result = cursor.fetchone()
             if not grid_id_result:
                 raise HTTPException(status_code=500, detail="No active grid found for today.")
             grid_id = grid_id_result[0]
 
-            # ✅ Step 3: Check if a GameID exists for this user & grid
-            cursor.execute("""
-                SELECT TOP 1 GameID FROM dbo.Games 
-                WHERE UserID = ? AND GridID = ? 
-                ORDER BY PlayedAt DESC;
-            """, (user_id, grid_id))
+            # ✅ Retrieve existing GameID for this user and grid
+            cursor.execute("SELECT GameID, GuessesMade FROM dbo.Games WHERE UserID = ? AND GridID = ?", (user_id, grid_id))
             game_id_result = cursor.fetchone()
 
             if not game_id_result:
@@ -484,12 +480,14 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
                     raise HTTPException(status_code=500, detail="Failed to create a new game session.")
 
                 game_id = game_id_result[0]
+                guesses_made = 0  # ✅ New game starts with 0 guesses
                 print(f"DEBUG: Created new GameID {game_id} for UserID {user_id} and GridID {grid_id}")
             else:
                 game_id = game_id_result[0]
+                guesses_made = game_id_result[1]  # ✅ Retrieve current guesses made
                 print(f"DEBUG: Found existing GameID {game_id} for UserID {user_id} and GridID {grid_id}")
 
-            # ✅ Step 4: Ensure user has a game session in memory
+            # ✅ Ensure user has a game session in memory
             if user_id not in game_state:
                 game_state[user_id] = {
                     "remaining_attempts": 9,
@@ -501,45 +499,61 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
 
             print(f"DEBUG: User guessed {guess.rider} for cell ({guess.row}, {guess.column})")
 
-            # ✅ Step 5: Check if the cell has already been answered
+            # ✅ Check if the cell has already been answered
             if selected_cell not in game_state[user_id]["unanswered_cells"]:
                 return {
                     "message": f"⚠️ '{guess.rider}' has already been guessed for {guess.row} | {guess.column}!",
                     "remaining_attempts": game_state[user_id]["remaining_attempts"]
                 }
 
-            # ✅ Step 6: Check if the rider has already been used in another cell
+            # ✅ Check if the rider has already been used in another cell
             if guess.rider in game_state[user_id]["used_riders"]:
                 return {
                     "message": f"❌ '{guess.rider}' has already been used in another cell. Try a different rider!",
                     "remaining_attempts": game_state[user_id]["remaining_attempts"]
                 }
 
-            # ✅ Step 7: Retrieve expected riders for this cell
+            # ✅ Retrieve expected riders for this cell
             if selected_cell in game_state["grid_data"]:
                 expected_riders = game_state["grid_data"][selected_cell]
                 print(f"DEBUG: Expected correct riders for {selected_cell}: {expected_riders}")
             else:
                 return {"error": f"Cell {selected_cell} has no valid riders."}
 
-            # ✅ Step 8: Normalize input for case-insensitive comparison
+            # ✅ Normalize input for case-insensitive comparison
             guessed_rider = guess.rider.strip().lower()
             expected_riders_normalized = {rider.strip().lower() for rider in expected_riders}
 
             is_correct = guessed_rider in expected_riders_normalized
             print(f"DEBUG: is_correct = {is_correct}")
 
-            # ✅ Step 9: Deduct an attempt for each unique guess (correct or incorrect)
+            # ✅ Deduct an attempt for each unique guess (correct or incorrect)
             game_state[user_id]["remaining_attempts"] -= 1
+            guesses_made += 1  # ✅ Increment guess count
 
-            # ✅ Step 10: Insert the guess into `UserGuesses`
+            # ✅ Insert the guess into `UserGuesses`
             cursor.execute("""
                 INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE());
             """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct)))
             conn.commit()
 
-            # ✅ Step 11: If incorrect, return immediately
+            # ✅ Step 11: Update GuessesMade and GuessesCorrect in `Games`
+            cursor.execute("""
+                UPDATE dbo.Games
+                SET GuessesMade = GuessesMade + 1,
+                    GuessesCorrect = GuessesCorrect + ?
+                WHERE GameID = ?;
+            """, (1 if is_correct else 0, game_id))
+            conn.commit()
+
+            # ✅ Check if game is now completed
+            if game_state[user_id]["remaining_attempts"] == 0:
+                cursor.execute("UPDATE dbo.Games SET Completed = 1 WHERE GameID = ?", (game_id,))
+                conn.commit()
+                print(f"DEBUG: Game {game_id} marked as Completed.")
+
+            # ✅ If incorrect, return immediately
             if not is_correct:
                 return {
                     "message": f"❌ '{guess.rider}' is incorrect for {guess.row} | {guess.column}!",
@@ -549,18 +563,16 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
                     "guess_percentage": None
                 }
 
-            # ✅ Step 12: Fetch guess percentage directly after a correct guess
+            # ✅ Fetch guess percentage for correct guesses
             cursor.execute("""
                 WITH CorrectGuesses AS (
-                    SELECT 
-                        g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, 
-                        COUNT(*) AS GuessCount
+                    SELECT g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, 
+                           COUNT(*) AS GuessCount
                     FROM dbo.UserGuesses g
                     WHERE g.GridID = ? AND g.RowCriterion = ? AND g.ColumnCriterion = ? AND g.IsCorrect = 1
                     GROUP BY g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName
                 )
-                SELECT 
-                    (cg.GuessCount * 100.0 / NULLIF(total.TotalGuesses, 0)) AS GuessPercentage
+                SELECT (cg.GuessCount * 100.0 / NULLIF(total.TotalGuesses, 0)) AS GuessPercentage
                 FROM CorrectGuesses cg
                 JOIN (
                     SELECT GridID, RowCriterion, ColumnCriterion, SUM(GuessCount) AS TotalGuesses
@@ -571,17 +583,17 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
                 AND cg.RowCriterion = total.RowCriterion 
                 AND cg.ColumnCriterion = total.ColumnCriterion
                 WHERE cg.FullName = ?
-            """, (game_state["grid_id"], guess.row, guess.column, guess.rider))
+            """, (grid_id, guess.row, guess.column, guess.rider))
 
             guess_percentage_result = cursor.fetchall()
             guess_percentage = round(guess_percentage_result[0][0], 2) if guess_percentage_result else 0.0
 
-            # ✅ Step 13: Fetch rider image for correct guess
+            # ✅ Fetch rider image for correct guess
             cursor.execute("SELECT ImageURL FROM Rider_List WHERE FullName = ?", (guess.rider,))
             result = cursor.fetchone()
             image_url = result[0] if result else None
 
-            # ✅ Step 14: Update game state (mark cell as answered & rider as used)
+            # ✅ Update game state for correct guesses
             game_state[user_id]["used_riders"].add(guess.rider)
             game_state[user_id]["unanswered_cells"].discard(selected_cell)
 
@@ -599,18 +611,79 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
         raise HTTPException(status_code=500, detail=f"Error processing guess: {str(e)}")
 
 
+
+
+
     
 
 @app.post("/give-up")
-def give_up():
-    """End the game immediately."""
-    global game_state  # Declare game_state as global
-    game_state["remaining_attempts"] = 0  # Set remaining attempts to zero
+def give_up(guest_id: UUID):
+    """Ends the game immediately. Ensures a GameID is assigned before finalizing the game."""
+    global game_state
 
-    return {
-        "message": "Game ended! You have used all attempts.",
-        "remaining_attempts": game_state["remaining_attempts"]
-    }
+    try:
+        with pyodbc.connect(CONN_STR) as conn:
+            cursor = conn.cursor()
+
+            # ✅ Retrieve UserID for guest
+            cursor.execute("SELECT UserID FROM dbo.Users WHERE GuestID = ?", str(guest_id))
+            user_id_result = cursor.fetchone()
+            if not user_id_result:
+                raise HTTPException(status_code=404, detail="Guest user not found.")
+            user_id = user_id_result[0]
+
+            # ✅ Retrieve active GridID
+            cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active';")
+            grid_id_result = cursor.fetchone()
+            if not grid_id_result:
+                raise HTTPException(status_code=500, detail="No active grid found for today.")
+            grid_id = grid_id_result[0]
+
+            # ✅ Check if a GameID exists
+            cursor.execute("""
+                SELECT TOP 1 GameID FROM dbo.Games 
+                WHERE UserID = ? AND GridID = ? 
+                ORDER BY PlayedAt DESC;
+            """, (user_id, grid_id))
+            game_id_result = cursor.fetchone()
+
+            if not game_id_result:
+                # ✅ Create a game if it doesn't exist yet
+                cursor.execute("""
+                    INSERT INTO dbo.Games (UserID, GuestID, GridID, GuessesMade, Completed, Score, PlayedAt)
+                    OUTPUT INSERTED.GameID
+                    VALUES (?, ?, ?, 0, 1, 0, GETDATE());
+                """, (user_id, str(guest_id), grid_id))
+                game_id_result = cursor.fetchone()
+
+                if not game_id_result:
+                    raise HTTPException(status_code=500, detail="Failed to create a new game for Give Up.")
+
+                game_id = game_id_result[0]
+                print(f"DEBUG: Created new GameID {game_id} for guest {guest_id} on Give Up")
+            else:
+                game_id = game_id_result[0]
+                print(f"DEBUG: Found existing GameID {game_id} for guest {guest_id} on Give Up")
+
+            # ✅ Mark the game as completed in the database
+            cursor.execute("""
+                UPDATE dbo.Games
+                SET Completed = 1
+                WHERE GameID = ?;
+            """, (game_id,))
+            conn.commit()
+
+            # ✅ Ensure the game state reflects game over
+            game_state["remaining_attempts"] = 0  
+
+            return {
+                "message": "Game ended! You have used all attempts.",
+                "remaining_attempts": 0
+            }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing give-up: {str(e)}")
+
 
 @app.post("/reset")
 def reset_game():
@@ -665,18 +738,12 @@ def get_game_summary(request: Request):
 
             # ✅ Fetch Total Games Played & Average Correct Answers Per Game
             cursor.execute("""
-                SELECT COUNT(DISTINCT g.GameID) AS TotalGamesPlayed, 
-                       CAST(AVG(CAST(GameScores.CorrectGuesses AS FLOAT)) AS DECIMAL(10,2)) AS AverageScore
-                FROM (
-                    SELECT ug.GameID, COUNT(*) AS CorrectGuesses
-                    FROM dbo.UserGuesses ug
-                    WHERE ug.GridID = ?  
-                    AND ug.IsCorrect = 1  
-                    GROUP BY ug.GameID  
-                ) AS GameScores
-                JOIN dbo.Games g ON g.GameID = GameScores.GameID
-                WHERE g.GridID = ?;
-            """, (grid_id, grid_id))
+                SELECT COUNT(*) AS TotalGamesPlayed, 
+                       CAST(AVG(CAST(GuessesMade AS FLOAT)) AS DECIMAL(10,2)) AS AverageScore
+                FROM dbo.Games
+                WHERE GridID = ? AND Completed = 1;  -- ✅ Count only completed games
+            """, (grid_id,))
+
             
             stats = cursor.fetchone()
             total_games = stats[0] if stats[0] else 0
