@@ -293,7 +293,12 @@ body {
   color: white;
 }
 
-
+.header-flag {
+  width: 90px; /* Adjust as needed */
+  height: auto;
+  max-height: 50px;
+  object-fit: contain;
+}
 
 
 
