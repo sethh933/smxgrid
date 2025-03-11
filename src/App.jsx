@@ -20,6 +20,8 @@ function App() {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [guestId, setGuestId] = useState(null);
   const [gridId, setGridId] = useState(null); // Track the active grid ID
+  const [correctGuesses, setCorrectGuesses] = useState(new Set());
+
 
   // ✅ Close the input container when clicking anywhere else
 useEffect(() => {
@@ -304,8 +306,21 @@ const handleSubmit = async (selectedRider = riderName) => {
     setGuessesLeft(response.data.remaining_attempts);
 
     if (!response.data.rider) {
+      // ✅ Track incorrect guesses for this specific cell
+      setIncorrectGuesses(prev => ({
+        ...prev,
+        [`${selectedCell.row}-${selectedCell.col}`]: [
+          ...(prev[`${selectedCell.row}-${selectedCell.col}`] || []),
+          selectedRider,
+        ],
+      }));
       return;
     }
+
+    if (response.data.rider) {
+      setCorrectGuesses(prev => new Set([...prev, selectedRider])); // ✅ Add to correct guesses
+    }
+    
 
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
@@ -451,20 +466,30 @@ const handleGiveUp = async () => {
           {suggestions.length > 0 && (
             <div className="autocomplete-list">
               <ul>
-                {suggestions.map((suggestion, index) => (
-                  <li key={index} className="suggestion-item">
-                    <span>{suggestion}</span>
-                    <button
-                      className="select-button"
-                      onClick={async () => {
-                        setRiderName(suggestion);
-                        await handleSubmit(suggestion);
-                      }}
-                    >
-                      Select
-                    </button>
-                  </li>
-                ))}
+              {suggestions
+  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove correctly guessed riders
+  .map((suggestion, index) => {
+    const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
+    return (
+      <li key={index} className="suggestion-item">
+        <span className={isIncorrect ? "incorrect-guess" : ""}>{suggestion}</span>
+        {!isIncorrect && (
+          <button
+            className="select-button"
+            onClick={async () => {
+              setRiderName(suggestion);
+              await handleSubmit(suggestion);
+            }}
+          >
+            Select
+          </button>
+        )}
+      </li>
+    );
+  })}
+
+
+
               </ul>
             </div>
           )}

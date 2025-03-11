@@ -276,6 +276,13 @@ body {
   margin-bottom: 10px;
 }
 
+/* Incorrect Guess Styling */
+.incorrect-guess {
+  color: red;
+  text-decoration: line-through;
+}
+
+
 
 
 
