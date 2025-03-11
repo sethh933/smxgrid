@@ -281,6 +281,18 @@ body {
   color: red;
   text-decoration: line-through;
 }
+/* Full-page loading screen */
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full page height */
+  width: 100%;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
 
 
 

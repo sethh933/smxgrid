@@ -21,6 +21,8 @@ function App() {
   const [guestId, setGuestId] = useState(null);
   const [gridId, setGridId] = useState(null); // Track the active grid ID
   const [correctGuesses, setCorrectGuesses] = useState(new Set());
+  const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
+
 
 
   // ✅ Close the input container when clicking anywhere else
@@ -75,13 +77,17 @@ useEffect(() => {
   
       setGuessesLeft(response.data.remaining_attempts);
       setGridId(response.data.grid_id); // ✅ Store the grid ID for the daily game
+
+      setIsLoading(false); // ✅ Everything is loaded, remove loading state
     } catch (error) {
       console.error("Error initializing grid:", error);
+      setIsLoading(false); // ✅ Remove loading state even on error
     }
   };
-  
+
   initializeGrid();
-}, [guestId]);  // ✅ This now depends on guestId
+}, [guestId]);  // ✅ Runs when guestId is available
+
 
 useEffect(() => {
   if (!guestId || !gridId) return; // Wait until both guestId and gridId are available
@@ -395,79 +401,84 @@ const handleGiveUp = async () => {
   
 
 
-  return (
-    <div className="container">
-
-  
-      {/* ✅ Wrap Grid and Side Panel */}
-      <div className="game-layout">
-        {/* ✅ Grid Section */}
-        <div className="grid-wrapper">
-          <div className="column-headers">
-            <div className="empty-cell"></div>
-            {columns.map((col, index) => (
-              <div key={index} className="header-cell">{col}</div>
-            ))}
-          </div>
-  
-          <div className="grid-body">
-            {rows.map((row, rowIndex) => (
-              <div key={rowIndex} className="grid-row">
-                <div className="header-cell">{row}</div>
-                {grid[rowIndex].map((cell, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-                    onClick={() => handleCellClick(rowIndex, colIndex)}
-                  >
-                    {cell && cell.image ? (
-                      <>
-                        <img src={cell.image} alt={cell.name} className="rider-image" />
-                        <div className="rider-name-banner">{cell.name}</div>
-                        {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
-                          <div className="guess-percentage">{cell.guess_percentage}%</div>
-                        )}
-                      </>
-                    ) : (
-                      cell.name || ""
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-  
-        {/* ✅ Side Panel with Guess Counter & Give Up Button */}
-        <div className="side-panel">
-          <p className="guess-counter">{guessesLeft}</p>
-          <p className="guess-counter-label">Guesses Left</p>
-          {gameOver ? (
-            <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
-          ) : (
-            <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
-          )}
-        </div>
+return (
+  <div className="container">
+    {isLoading ? (
+      // ✅ Show only ONE loading screen
+      <div className="loading-screen">
+        <p>Loading game...</p>
       </div>
-  
-      {/* ✅ Input Container */}
-      {selectedCell && (
-        <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
-          <input 
-            type="text" 
-            placeholder="Enter rider name..." 
-            className="input-box" 
-            value={riderName} 
-            onChange={handleInputChange} 
-            autoFocus 
-          />
-  
-          {/* ✅ Autocomplete Dropdown */}
-          {suggestions.length > 0 && (
-            <div className="autocomplete-list">
-              <ul>
-              {suggestions
-  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove correctly guessed riders
+    ) : (
+      <>
+        {/* ✅ Wrap Grid and Side Panel */}
+        <div className="game-layout">
+          {/* ✅ Grid Section */}
+          <div className="grid-wrapper">
+            <div className="column-headers">
+              <div className="empty-cell"></div>
+              {columns.map((col, index) => (
+                <div key={index} className="header-cell">{col}</div>
+              ))}
+            </div>
+
+            <div className="grid-body">
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="grid-row">
+                  <div className="header-cell">{row}</div>
+                  {grid[rowIndex].map((cell, colIndex) => (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+                      onClick={() => handleCellClick(rowIndex, colIndex)}
+                    >
+                      {cell && cell.image ? (
+                        <>
+                          <img src={cell.image} alt={cell.name} className="rider-image" />
+                          <div className="rider-name-banner">{cell.name}</div>
+                          {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
+                            <div className="guess-percentage">{cell.guess_percentage}%</div>
+                          )}
+                        </>
+                      ) : (
+                        cell.name || ""
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ✅ Side Panel with Guess Counter & Give Up Button */}
+          <div className="side-panel">
+            <p className="guess-counter">{guessesLeft}</p>
+            <p className="guess-counter-label">Guesses Left</p>
+            {gameOver ? (
+              <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
+            ) : (
+              <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
+            )}
+          </div>
+        </div>
+
+        {/* ✅ Input Container */}
+        {selectedCell && (
+          <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
+            <input 
+              type="text" 
+              placeholder="Enter rider name..." 
+              className="input-box" 
+              value={riderName} 
+              onChange={handleInputChange} 
+              autoFocus 
+            />
+
+            {/* ✅ Autocomplete Dropdown */}
+            {suggestions.length > 0 && (
+              <div className="autocomplete-list">
+                <ul>
+                {suggestions
+  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove correct guesses
   .map((suggestion, index) => {
     const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
     return (
@@ -488,32 +499,35 @@ const handleGiveUp = async () => {
     );
   })}
 
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ✅ Summary Modal */}
+        {isSummaryOpen && gameSummary && (
+          <SummaryModal
+            isOpen={isSummaryOpen}
+            onClose={() => setIsSummaryOpen(false)}
+            totalGames={gameSummary.total_games_played}
+            averageScore={gameSummary.average_score}
+            rarityScores={gameSummary.rarity_score}
+            mostGuessedGrid={gameSummary.mostGuessedGrid || []}
+            correctPercentageGrid={gameSummary.correctPercentageGrid || []}
+            rows={rows}
+            columns={columns}
+            gridId={gridId}
+            grid={grid}
+          />
+        )}
+      </>
+    )}
+  </div>
+);
 
 
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-  
-      {/* ✅ Summary Modal */}
-      {isSummaryOpen && gameSummary && (
-        <SummaryModal
-          isOpen={isSummaryOpen}
-          onClose={() => setIsSummaryOpen(false)}
-          totalGames={gameSummary.total_games_played}
-          averageScore={gameSummary.average_score}
-          rarityScores={gameSummary.rarity_score}
-          mostGuessedGrid={gameSummary.mostGuessedGrid || []}
-          correctPercentageGrid={gameSummary.correctPercentageGrid || []}
-          rows={rows}
-          columns={columns}
-          gridId={gridId}
-          grid={grid}
-        />
-      )}
-    </div>
-  );
+
   
 }
 
