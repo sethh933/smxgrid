@@ -28,6 +28,20 @@ const SummaryModal = ({
         gridId
     });
 
+    // ✅ Disable scrolling when modal is open
+useEffect(() => {
+    if (isOpen) {
+        document.body.style.overflow = "hidden"; // ✅ Prevent scrolling
+    } else {
+        document.body.style.overflow = ""; // ✅ Restore scrolling when modal closes
+    }
+
+    return () => {
+        document.body.style.overflow = ""; // ✅ Ensure scrolling is restored when unmounting
+    };
+}, [isOpen]);
+
+
     // ✅ Close modal if clicking outside of it
     useEffect(() => {
         const handleClickOutside = (event) => {
