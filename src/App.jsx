@@ -88,11 +88,6 @@ useEffect(() => {
   initializeGrid();
 }, [guestId]);  // ✅ Runs when guestId is available
 
-const categoryFlags = {
-  "United States": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
-  "France": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
-  "Australia": "https://upload.wikimedia.org/wikipedia/en/b/b9/Flag_of_Australia.svg",
-};
 
 useEffect(() => {
   if (!guestId || !gridId) return; // Wait until both guestId and gridId are available
@@ -402,44 +397,34 @@ const handleGiveUp = async () => {
   }
 };
 
+  
+  
+
+
 return (
   <div className="container">
     {isLoading ? (
+      // ✅ Show only ONE loading screen
       <div className="loading-screen">
         <p>Loading game...</p>
       </div>
     ) : (
       <>
+        {/* ✅ Wrap Grid and Side Panel */}
         <div className="game-layout">
+          {/* ✅ Grid Section */}
           <div className="grid-wrapper">
-            {/* ✅ Column Headers */}
             <div className="column-headers">
               <div className="empty-cell"></div>
               {columns.map((col, index) => (
-                <div key={index} className="header-cell">
-                  {categoryFlags[col] ? (
-                    <img src={categoryFlags[col]} alt={col} className="header-flag" />
-                  ) : (
-                    col
-                  )}
-                </div>
+                <div key={index} className="header-cell">{col}</div>
               ))}
             </div>
 
-            {/* ✅ Grid Body */}
             <div className="grid-body">
               {rows.map((row, rowIndex) => (
                 <div key={rowIndex} className="grid-row">
-                  {/* ✅ Row Headers (Now Includes Flags) */}
-                  <div className="header-cell">
-                    {categoryFlags[row] ? (
-                      <img src={categoryFlags[row]} alt={row} className="header-flag" />
-                    ) : (
-                      row
-                    )}
-                  </div>
-
-                  {/* ✅ Grid Cells */}
+                  <div className="header-cell">{row}</div>
                   {grid[rowIndex].map((cell, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
@@ -464,7 +449,7 @@ return (
             </div>
           </div>
 
-          {/* ✅ Side Panel (Guess Counter & Give Up Button) */}
+          {/* ✅ Side Panel with Guess Counter & Give Up Button */}
           <div className="side-panel">
             <p className="guess-counter">{guessesLeft}</p>
             <p className="guess-counter-label">Guesses Left</p>
@@ -492,27 +477,28 @@ return (
             {suggestions.length > 0 && (
               <div className="autocomplete-list">
                 <ul>
-                  {suggestions
-                    .filter(suggestion => !correctGuesses.has(suggestion)) 
-                    .map((suggestion, index) => {
-                      const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
-                      return (
-                        <li key={index} className="suggestion-item">
-                          <span className={isIncorrect ? "incorrect-guess" : ""}>{suggestion}</span>
-                          {!isIncorrect && (
-                            <button
-                              className="select-button"
-                              onClick={async () => {
-                                setRiderName(suggestion);
-                                await handleSubmit(suggestion);
-                              }}
-                            >
-                              Select
-                            </button>
-                          )}
-                        </li>
-                      );
-                    })}
+                {suggestions
+  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove correct guesses
+  .map((suggestion, index) => {
+    const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
+    return (
+      <li key={index} className="suggestion-item">
+        <span className={isIncorrect ? "incorrect-guess" : ""}>{suggestion}</span>
+        {!isIncorrect && (
+          <button
+            className="select-button"
+            onClick={async () => {
+              setRiderName(suggestion);
+              await handleSubmit(suggestion);
+            }}
+          >
+            Select
+          </button>
+        )}
+      </li>
+    );
+  })}
+
                 </ul>
               </div>
             )}
@@ -539,6 +525,8 @@ return (
     )}
   </div>
 );
+
+
 
   
 }
