@@ -19,9 +19,10 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r backend/requirements.txt
+        run: pip install -r backend/requirements.txt
+
+      - name: Set Startup Command
+        run: az webapp config set --resource-group MyResourceGroup --name smxmusegrid --startup-file "uvicorn main:app --host=0.0.0.0 --port=8000"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
@@ -29,3 +30,5 @@ jobs:
           app-name: smxmusegrid
           publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
           package: backend/
+
+
