@@ -27,6 +27,9 @@ jobs:
       - name: Zip Build Folder
         run: zip -r dist.zip dist/
 
+      - name: Set Node.js Version for Web App
+        run: az webapp config set --resource-group MyResourceGroup --name smxmusegrid --linux-fx-version "NODE|18-lts"
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
