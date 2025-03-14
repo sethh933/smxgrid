@@ -409,10 +409,10 @@ return (
       </div>
     ) : (
       <>
-        {/* ✅ Full-width top banner (ONLY shows after loading) */}
-        <div className="top-banner">
-          <h1>smxmuse grids by smxmuse</h1>
-        </div>
+<div className="top-banner">
+  <span>smxmuse grids by</span>
+  <img src="/smxmuse-logo.png" alt="smxmuse" className="banner-logo" />
+</div>
 
         <div className="container">
         {/* ✅ Wrap Grid and Side Panel */}
