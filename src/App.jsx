@@ -402,14 +402,19 @@ const handleGiveUp = async () => {
 
 
 return (
-  <div className="container">
+  <>
     {isLoading ? (
-      // ✅ Show only ONE loading screen
+      // ✅ Show only ONE loading screen (No banner!)
       <div className="loading-screen">
-        <p>Loading game...</p>
       </div>
     ) : (
       <>
+        {/* ✅ Full-width top banner (ONLY shows after loading) */}
+        <div className="top-banner">
+          <h1>smxmuse grids by smxmuse</h1>
+        </div>
+
+        <div className="container">
         {/* ✅ Wrap Grid and Side Panel */}
         <div className="game-layout">
           {/* ✅ Grid Section */}
@@ -519,11 +524,12 @@ return (
             columns={columns}
             gridId={gridId}
             grid={grid}
-          />
-        )}
+/>
+          )}
+        </div>
       </>
     )}
-  </div>
+  </>
 );
 
 
