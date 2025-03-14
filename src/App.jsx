@@ -3,7 +3,8 @@ import axios from "axios";
 import "./App.css";
 import SummaryModal from "./SummaryModal.jsx"; // ✅ Import Summary Modal
 import { v4 as uuidv4 } from 'uuid';
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faInstagram, faXTwitter } from "@fortawesome/free-brands-svg-icons"; // X and Instagram icons
 
 
 function App() {
@@ -410,9 +411,23 @@ return (
     ) : (
       <>
 <div className="top-banner">
-  <span>smxmuse grids by</span>
-  <img src="/smxmuse-logo.png" alt="smxmuse" className="banner-logo" />
+  {/* ✅ Wrap logo & text together so they stay left */}
+  <div className="banner-left">
+    <span>smxmuse grids by</span>
+    <img src="/smxmuse-logo.png" alt="smxmuse" className="banner-logo" />
+  </div>
+
+  {/* ✅ Social Media Icons - Now positioned separately */}
+  <div className="social-icons">
+    <a href="https://www.instagram.com/smxmuse" target="_blank" rel="noopener noreferrer">
+      <FontAwesomeIcon icon={faInstagram} className="social-icon" />
+    </a>
+    <a href="https://twitter.com/smxmuse" target="_blank" rel="noopener noreferrer">
+      <FontAwesomeIcon icon={faXTwitter} className="social-icon" />
+    </a>
+  </div>
 </div>
+
 
         <div className="container">
         {/* ✅ Wrap Grid and Side Panel */}

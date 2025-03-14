@@ -300,14 +300,21 @@ body {
   color: white;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* ✅ Keep text & logo on the left */
-  padding-left: 20px; /* ✅ Add spacing from the left edge */
+  justify-content: space-between; /* ✅ Ensures logo & text stay left, icons move right */
+  padding: 0 0px; /* ✅ Adds space on both sides */
   font-size: 24px; /* ✅ Increase font size */
   font-weight: bold;
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1000;
+}
+
+/* ✅ Ensure text & logo stay together on the left */
+.banner-left {
+  display: flex;
+  align-items: center;
+  padding-left: 20px; /* ✅ Moves text slightly inward */
 }
 
 /* ✅ Logo Styling */
@@ -319,6 +326,20 @@ body {
 /* ✅ Ensure the text next to the logo is properly aligned */
 .top-banner span {
   font-size: 24px; /* ✅ Make sure the text stays large */
+}
+
+/* ✅ Social Icons Container - Moves to the Right */
+.social-icons {
+  display: flex;
+  gap: 15px; /* ✅ Space between icons */
+  margin-right: 600px; /* ✅ Pushes icons to the right */
+}
+
+/* ✅ Style for Social Icons */
+.social-icon {
+  font-size: 24px;
+  color: white;
+  transition: color 0.3s ease;
 }
 
 
