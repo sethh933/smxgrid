@@ -314,13 +314,13 @@ body {
 .banner-left {
   display: flex;
   align-items: center;
-  padding-left: 20px; /* ✅ Moves text slightly inward */
+  padding-left: 350px; /* ✅ Moves text slightly inward */
 }
 
 /* ✅ Logo Styling */
 .banner-logo {
-  height: 50px; /* Adjust size */
-  margin-left: 10px; /* Space between text and logo */
+  height: 80px; /* Adjust size */
+  margin-left: 5px; /* Space between text and logo */
 }
 
 /* ✅ Ensure the text next to the logo is properly aligned */
