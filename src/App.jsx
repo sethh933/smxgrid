@@ -4,7 +4,10 @@ import "./App.css";
 import SummaryModal from "./SummaryModal.jsx"; // ✅ Import Summary Modal
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faInstagram, faXTwitter } from "@fortawesome/free-brands-svg-icons"; // X and Instagram icons
+import { faInstagram, faXTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import HowToPlayModal from "./HowToPlayModal";
+
 
 
 function App() {
@@ -23,6 +26,8 @@ function App() {
   const [gridId, setGridId] = useState(null); // Track the active grid ID
   const [correctGuesses, setCorrectGuesses] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
+  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
+
 
 
 
@@ -419,14 +424,18 @@ return (
 
   {/* ✅ Social Media Icons - Now positioned separately */}
   <div className="social-icons">
-    <a href="https://www.instagram.com/smxmuse" target="_blank" rel="noopener noreferrer">
-      <FontAwesomeIcon icon={faInstagram} className="social-icon" />
-    </a>
-    <a href="https://twitter.com/smxmuse" target="_blank" rel="noopener noreferrer">
-      <FontAwesomeIcon icon={faXTwitter} className="social-icon" />
-    </a>
-  </div>
+  <a href="https://www.instagram.com/smxmuse" target="_blank" rel="noopener noreferrer">
+    <FontAwesomeIcon icon={faInstagram} className="social-icon" />
+  </a>
+  <a href="https://twitter.com/smxmuse" target="_blank" rel="noopener noreferrer">
+    <FontAwesomeIcon icon={faXTwitter} className="social-icon" />
+  </a>
+  <button className="social-icon how-to-play-btn" onClick={() => setIsHowToPlayOpen(true)}>
+    <FontAwesomeIcon icon={faQuestionCircle} />
+  </button>
 </div>
+</div>
+
 
 
         <div className="container">
@@ -541,6 +550,8 @@ return (
             grid={grid}
 />
           )}
+          {isHowToPlayOpen && <HowToPlayModal isOpen={isHowToPlayOpen} onClose={() => setIsHowToPlayOpen(false)} />}
+
         </div>
       </>
     )}
