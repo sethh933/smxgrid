@@ -1,33 +1,48 @@
+/* Modal Background (Overlay) */
 .howto-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .howto-modal-content {
-    background: #222;
+    z-index: 1000;
+}
+
+/* Modal Box */
+.howto-modal-content {
+    background: #333;
     color: white;
-    width: 500px; /* Make sure this matches SummaryModal */
+    width: 40%; /* Matches SummaryModal */
+    max-width: 500px;
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-  }
-  
-  .howto-close-button {
-    background: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
+    overflow-y: auto;
+    max-height: 80vh;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1001;
+}
+
+/* Close Button */
+.howto-close-button {
     position: absolute;
+    top: 10px;
     right: 15px;
-    top: 15px;
-  }
-  
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Prevent main page scrolling when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
 
