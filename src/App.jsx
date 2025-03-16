@@ -438,57 +438,61 @@ return (
 
 
 
-        <div className="container">
-        {/* ✅ Wrap Grid and Side Panel */}
-        <div className="game-layout">
-          {/* ✅ Grid Section */}
-          <div className="grid-wrapper">
+<div className="container">
+    {/* ✅ Wrap Grid and Side Panel */}
+    <div className="game-layout">
+        {/* ✅ Grid Section */}
+        <div className="grid-wrapper">
             <div className="column-headers">
-              <div className="empty-cell"></div>
-              {columns.map((col, index) => (
-                <div key={index} className="header-cell">{col}</div>
-              ))}
+                <div className="empty-cell"></div>
+                {columns.map((col, index) => (
+                    <div key={index} className="header-cell">{col}</div>
+                ))}
             </div>
 
             <div className="grid-body">
-              {rows.map((row, rowIndex) => (
-                <div key={rowIndex} className="grid-row">
-                  <div className="header-cell">{row}</div>
-                  {grid[rowIndex].map((cell, colIndex) => (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
-                    >
-                      {cell && cell.image ? (
-                        <>
-                          <img src={cell.image} alt={cell.name} className="rider-image" />
-                          <div className="rider-name-banner">{cell.name}</div>
-                          {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
-                            <div className="guess-percentage">{cell.guess_percentage}%</div>
-                          )}
-                        </>
-                      ) : (
-                        cell.name || ""
-                      )}
+                {rows.map((row, rowIndex) => (
+                    <div key={rowIndex} className="grid-row">
+                        <div className="header-cell">{row}</div>
+                        {grid[rowIndex].map((cell, colIndex) => (
+                            <div
+                                key={`${rowIndex}-${colIndex}`}
+                                className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+                                onClick={() => handleCellClick(rowIndex, colIndex)}
+                            >
+                                {cell && cell.image ? (
+                                    <>
+                                        <img src={cell.image} alt={cell.name} className="rider-image" />
+                                        <div className="rider-name-banner">{cell.name}</div>
+                                        {cell.guess_percentage !== undefined && cell.guess_percentage > 0 && (
+                                            <div className="guess-percentage">{cell.guess_percentage}%</div>
+                                        )}
+                                    </>
+                                ) : (
+                                    cell.name || ""
+                                )}
+                            </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
-              ))}
+                ))}
             </div>
-          </div>
-
-          {/* ✅ Side Panel with Guess Counter & Give Up Button */}
-          <div className="side-panel">
-            <p className="guess-counter">{guessesLeft}</p>
-            <p className="guess-counter-label">Guesses Left</p>
-            {gameOver ? (
-              <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
-            ) : (
-              <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
-            )}
-          </div>
         </div>
+
+        {/* ✅ Align Side Panel to the Third Row (HON) */}
+        <div className="side-panel-container">
+            <div className="side-panel">
+                <p className="guess-counter">{guessesLeft}</p>
+                <p className="guess-counter-label">Guesses Left</p>
+                {gameOver ? (
+                    <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
+                ) : (
+                    <button className="give-up-button" onClick={handleGiveUp}>Give Up</button>
+                )}
+            </div>
+        </div>
+    </div>
+
+
 
         {/* ✅ Input Container */}
         {selectedCell && (

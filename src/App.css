@@ -249,15 +249,26 @@ body {
 }
 
 /* Side Panel (Guess Counter & Give Up Button) */
-.side-panel {
+.side-panel-container {
+  width: 163px; /* Match header cell */
+  height: 163px; /* Match header cell */
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  position: absolute;
-  right: -200px; /* Move it to the right of the grid */
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust to be perfectly centered */
 }
+
+/* ✅ Ensure Side Panel Matches the Header Cell */
+.side-panel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+
 
 /* Guess Counter */
 .guess-counter {
