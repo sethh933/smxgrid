@@ -174,6 +174,8 @@ useEffect(() => {
   if (!gridId) return;  // Ensure we only load state when gridId is available
 
   const savedGameState = localStorage.getItem(`game_state_${gridId}`);
+  const savedUsedGuesses = localStorage.getItem(`used_guesses_${gridId}`);
+
   if (savedGameState) {
     console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
@@ -182,7 +184,13 @@ useEffect(() => {
     setIncorrectGuesses(parsedState.incorrectGuesses || {});
     setGameOver(parsedState.gameOver ?? false);
   }
-}, [gridId]);  // ✅ Only runs when gridId changes
+
+  // ✅ Load used guesses from localStorage
+  if (savedUsedGuesses) {
+    setCorrectGuesses(new Set(JSON.parse(savedUsedGuesses)));
+  }
+}, [gridId]);
+
 
 
   // Fetch game summary when game ends
@@ -330,8 +338,16 @@ const handleSubmit = async (selectedRider = riderName) => {
     }
 
     if (response.data.rider) {
-      setCorrectGuesses(prev => new Set([...prev, selectedRider])); // ✅ Add to correct guesses
+      setCorrectGuesses(prev => {
+        const updatedGuesses = new Set([...prev, selectedRider]);
+    
+        // ✅ Store updated correct guesses in localStorage
+        localStorage.setItem(`used_guesses_${gridId}`, JSON.stringify([...updatedGuesses]));
+    
+        return updatedGuesses;
+      });
     }
+    
     
 
     setGrid(prevGrid => {
@@ -511,7 +527,7 @@ return (
               <div className="autocomplete-list">
                 <ul>
                 {suggestions
-  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove correct guesses
+  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove used guesses
   .map((suggestion, index) => {
     const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
     return (
@@ -531,6 +547,7 @@ return (
       </li>
     );
   })}
+
 
                 </ul>
               </div>
