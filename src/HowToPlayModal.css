@@ -45,4 +45,12 @@ body.modal-open {
     overflow: hidden;
 }
 
+/* Center headers but align body text to the left */
+.howto-modal-content h2 {
+    text-align: center; /* Keeps headers centered */
+}
+
+.howto-modal-content p {
+    text-align: left; /* Aligns body text to the left */
+}
 
