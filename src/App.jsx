@@ -174,21 +174,27 @@ useEffect(() => {
   if (!gridId) return;  // Ensure we only load state when gridId is available
 
   const savedGameState = localStorage.getItem(`game_state_${gridId}`);
+  const savedIncorrectGuesses = localStorage.getItem(`incorrect_guesses_${gridId}`);
   const savedUsedGuesses = localStorage.getItem(`used_guesses_${gridId}`);
-
+  
   if (savedGameState) {
     console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
     setGrid(parsedState.grid || Array(3).fill(Array(3).fill("")));
     setGuessesLeft(parsedState.guessesLeft ?? 9);
-    setIncorrectGuesses(parsedState.incorrectGuesses || {});
     setGameOver(parsedState.gameOver ?? false);
   }
-
-  // ✅ Load used guesses from localStorage
+  
+  // ✅ Load incorrect guesses from localStorage
+  if (savedIncorrectGuesses) {
+    setIncorrectGuesses(JSON.parse(savedIncorrectGuesses));
+  }
+  
+  // ✅ Load used (correct) guesses from localStorage
   if (savedUsedGuesses) {
     setCorrectGuesses(new Set(JSON.parse(savedUsedGuesses)));
   }
+  
 }, [gridId]);
 
 
@@ -326,16 +332,24 @@ const handleSubmit = async (selectedRider = riderName) => {
     setGuessesLeft(response.data.remaining_attempts);
 
     if (!response.data.rider) {
-      // ✅ Track incorrect guesses for this specific cell
-      setIncorrectGuesses(prev => ({
-        ...prev,
-        [`${selectedCell.row}-${selectedCell.col}`]: [
-          ...(prev[`${selectedCell.row}-${selectedCell.col}`] || []),
-          selectedRider,
-        ],
-      }));
+      setIncorrectGuesses(prev => {
+        const updatedIncorrectGuesses = {
+          ...prev,
+          [`${selectedCell.row}-${selectedCell.col}`]: [
+            ...(prev[`${selectedCell.row}-${selectedCell.col}`] || []),
+            selectedRider,
+          ],
+        };
+    
+        // ✅ Store incorrect guesses in localStorage
+        localStorage.setItem(`incorrect_guesses_${gridId}`, JSON.stringify(updatedIncorrectGuesses));
+    
+        return updatedIncorrectGuesses;
+      });
+    
       return;
     }
+    
 
     if (response.data.rider) {
       setCorrectGuesses(prev => {
@@ -527,7 +541,7 @@ return (
               <div className="autocomplete-list">
                 <ul>
                 {suggestions
-  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove used guesses
+  .filter(suggestion => !correctGuesses.has(suggestion)) // ✅ Remove already used guesses
   .map((suggestion, index) => {
     const isIncorrect = incorrectGuesses[`${selectedCell?.row}-${selectedCell?.col}`]?.includes(suggestion);
     return (
@@ -547,6 +561,7 @@ return (
       </li>
     );
   })}
+
 
 
                 </ul>
