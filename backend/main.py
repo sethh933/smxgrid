@@ -317,7 +317,7 @@ from datetime import date
 
 @app.post("/start-game")
 def start_game(guest_id: UUID):
-    """Ensure each guest can play only once per day with the active grid."""
+    """Ensure each guest can play only once per day with the active grid and reset state when needed."""
     global game_state
 
     try:
@@ -359,12 +359,31 @@ def start_game(guest_id: UUID):
             existing_game = cursor.fetchone()
 
             if existing_game:
+                # ✅ If a game already exists, ensure the game state is consistent
+                if user_id not in game_state or game_state[user_id].get("grid_id") != grid_id:
+                    print(f"🔄 Restoring existing game state for GridID {grid_id}")
+                    game_state[user_id] = {
+                        "grid_id": grid_id,
+                        "remaining_attempts": 9,  # Adjust if needed based on the database
+                        "used_riders": set(),  # This should ideally be fetched from UserGuesses
+                        "unanswered_cells": set(game_state["grid_data"].keys()),
+                    }
+
                 return {
                     "message": "Game already exists",
                     "grid_id": grid_id,
                     "guest_id": str(guest_id),
                     "game_id": existing_game[0],
                 }
+
+            # ✅ No existing game → Reset and create fresh game state
+            print(f"🆕 New Grid Detected! Resetting game state for GridID {grid_id}")
+            game_state[user_id] = {
+                "grid_id": grid_id,
+                "remaining_attempts": 9,
+                "used_riders": set(),
+                "unanswered_cells": set(game_state["grid_data"].keys()),
+            }
 
             return {
                 "message": "No game exists yet, will be created on first guess.",
@@ -375,6 +394,7 @@ def start_game(guest_id: UUID):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error starting game: {str(e)}")
+
 
 
 
