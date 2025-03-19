@@ -171,31 +171,55 @@ const startGame = async (guestId) => {
 };
 
 useEffect(() => {
-  if (!gridId) return;  // Ensure we only load state when gridId is available
+  if (!gridId) return;
 
   const savedGameState = localStorage.getItem(`game_state_${gridId}`);
   const savedIncorrectGuesses = localStorage.getItem(`incorrect_guesses_${gridId}`);
   const savedUsedGuesses = localStorage.getItem(`used_guesses_${gridId}`);
-  
+
+  let loadedGrid = Array(3).fill(Array(3).fill(""));
+
   if (savedGameState) {
     console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
-    setGrid(parsedState.grid || Array(3).fill(Array(3).fill("")));
+    loadedGrid = parsedState.grid || loadedGrid;
+    setGrid(loadedGrid);
     setGuessesLeft(parsedState.guessesLeft ?? 9);
     setGameOver(parsedState.gameOver ?? false);
   }
-  
-  // ✅ Load incorrect guesses from localStorage
+
   if (savedIncorrectGuesses) {
     setIncorrectGuesses(JSON.parse(savedIncorrectGuesses));
   }
-  
-  // ✅ Load used (correct) guesses from localStorage
+
   if (savedUsedGuesses) {
     setCorrectGuesses(new Set(JSON.parse(savedUsedGuesses)));
   }
-  
-}, [gridId]);
+
+  // ✅ Dynamically update guess percentages after loading saved grid
+  if (gridId && loadedGrid) {
+    loadedGrid.forEach((row, rowIndex) => {
+      row.forEach(async (cell, colIndex) => {
+        if (cell && cell.name) {
+          try {
+            const response = await axios.get(
+              `http://localhost:8000/current-guess-percentage?grid_id=${gridId}&row=${encodeURIComponent(rows[rowIndex])}&column=${encodeURIComponent(columns[colIndex])}&rider=${encodeURIComponent(cell.name)}`
+            );
+            const updatedPercentage = response.data.guess_percentage;
+
+            // Update the grid cell with the refreshed percentage
+            loadedGrid[rowIndex][colIndex].guess_percentage = updatedPercentage;
+            setGrid([...loadedGrid]);  // Trigger re-render
+          } catch (error) {
+            console.error(`Error updating percentage for ${cell.name}:`, error);
+          }
+        }
+      });
+    });
+  }
+
+}, [gridId, rows, columns]); // ✅ Add rows & columns as dependencies too
+
 
 
 

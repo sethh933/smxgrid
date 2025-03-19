@@ -640,6 +640,36 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
         raise HTTPException(status_code=500, detail=f"Error processing guess: {str(e)}")
 
 
+@app.get("/current-guess-percentage")
+def get_current_guess_percentage(grid_id: int, row: str, column: str, rider: str):
+    try:
+        with pyodbc.connect(CONN_STR) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                WITH CorrectGuesses AS (
+                    SELECT g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, 
+                           COUNT(*) AS GuessCount
+                    FROM dbo.UserGuesses g
+                    WHERE g.GridID = ? AND g.RowCriterion = ? AND g.ColumnCriterion = ? AND g.IsCorrect = 1
+                    GROUP BY g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName
+                )
+                SELECT (cg.GuessCount * 100.0 / NULLIF(total.TotalGuesses, 0)) AS GuessPercentage
+                FROM CorrectGuesses cg
+                JOIN (
+                    SELECT GridID, RowCriterion, ColumnCriterion, SUM(GuessCount) AS TotalGuesses
+                    FROM CorrectGuesses
+                    GROUP BY GridID, RowCriterion, ColumnCriterion
+                ) total
+                ON cg.GridID = total.GridID 
+                AND cg.RowCriterion = total.RowCriterion 
+                AND cg.ColumnCriterion = total.ColumnCriterion
+                WHERE cg.FullName = ?
+            """, (grid_id, row, column, rider))
+            result = cursor.fetchone()
+            guess_percentage = round(result[0], 2) if result else 0.0
+            return {"guess_percentage": guess_percentage}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching guess percentage: {str(e)}")
 
 
 
