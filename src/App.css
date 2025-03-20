@@ -441,6 +441,8 @@ body {
     flex-direction: column;
     height: auto;
     padding: 5px 10px;
+    align-items: center;
+    overflow: hidden;
   }
 
   .banner-left {
@@ -453,9 +455,42 @@ body {
   }
 
   .social-icons {
-    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 8px;
+    position: relative;
+    left: 75%;
+    transform: translateX(-50%);
   }
+
+  .social-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  .social-icon:hover {
+    color: gray;
+  }
+
+  .how-to-play-btn-desktop {
+    display: none;
+  }
+
+  .how-to-play-btn-mobile {
+    display: block;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
 }
+
+
+
 
 
 
