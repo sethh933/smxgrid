@@ -29,15 +29,15 @@ body {
   /* width: 163px;
   height: 163px; */
   display: flex;
-  padding-left: 163px;
+  padding-left: 200px;
   justify-content: center;
   gap: 5px;
   margin-bottom: 5px;
 }
 
 .header-cell {
-  width: 163px;
-  height: 163px;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,19 +56,19 @@ body {
 .grid-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 0px;
 }
 
 /* Individual Grid Cells */
 .grid-cell {
   position: relative;
-  width: 165px;
-  height: 165px;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #333;
-  border: 2px solid white;
+  border: 1px solid white;
   font-size: 18px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -107,14 +107,13 @@ body {
 .selected {
   background-color: #f39c12;
   border-color: yellow;
-  transform: scale(1.05);
 }
 
 /* Input Box */
 .input-container {
   position: absolute;
-  top: 110px;
-  left: 53.75%;
+  top: 70px;
+  left: 49%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
   padding: 10px;
@@ -250,8 +249,8 @@ body {
 
 /* Side Panel (Guess Counter & Give Up Button) */
 .side-panel-container {
-  width: 163px; /* Match header cell */
-  height: 163px; /* Match header cell */
+  width: 200px; /* Match header cell */
+  height: 200px; /* Match header cell */
   display: flex;
   justify-content: center;
   align-items: center;
