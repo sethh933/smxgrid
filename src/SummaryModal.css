@@ -1,3 +1,4 @@
+/* Overlay */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -10,7 +11,7 @@
     justify-content: center;
 }
 
-/* ✅ Scrollable Modal */
+/* Modal content */
 .modal-content {
     background: #333;
     padding: 10px;
@@ -22,30 +23,7 @@
     text-align: center;
 }
 
-/* ✅ Proper 3x3 Grid Layout */
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
-    gap: 5px;  /* ✅ Reduce spacing between cells */
-    margin: 20px 0;
-}
-
-.summary-row {
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-}
-
-.summary-cell {
-    background: #222;
-
-    color: #fff;
-
-    padding: 10px;
-    border-radius: 5px;
-    min-width: 16px;
-}
-
+/* Close button */
 .close-button {
     background: red;
     color: white;
@@ -56,38 +34,65 @@
     margin-top: 10px;
 }
 
-.summary-modal {
-    background: #222;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 600px;
-    text-align: center;
-  }  
+/* Grid wrapper */
+.grid-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-/* ✅ Equal-sized Rider Cells */
+/* Column headers */
+.summary-column-headers {
+    display: grid;
+    grid-template-columns: 150px repeat(3, 150px);
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+/* Grid row structure */
+.summary-grid-row {
+    display: grid;
+    grid-template-columns: 150px repeat(3, 150px);
+}
+
+/* Header cells */
+.summary-header-cell,
+.modal-content .header-cell,
+.modal-content .column-header-cell {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Rider cells with tight borders */
 .rider-cell {
     position: relative;
-    background: #222;
     color: white;
-    width: 140px;
-    height: 140px;
-    border-radius: 5px;
+    width: 150px;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    border: 1px solid white;
+    box-sizing: border-box;
 }
 
-
-/* ✅ Rider Image fills the cell properly */
+/* Rider image fill */
 .rider-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 5px;
 }
 
-/* ✅ Rider Name Banner at the Bottom */
+/* Rider name banner */
 .rider-name-banner {
     position: absolute;
     bottom: 0;
@@ -98,29 +103,30 @@
     padding: 5px;
     font-size: 12px;
 }
-/* ✅ Guess Percentage in top-left corner */
+
+/* Guess percentage in top-left corner */
 .guess-percentage {
     position: absolute;
     top: 3px;
     left: 3px;
     background: rgba(0, 0, 0, 0.8);
-    color: rgb(255, 255, 255);
+    color: #fff;
     padding: 2px 4px;
     border-radius: 3px;
     font-size: 12px;
     font-weight: bold;
 }
 
-/* ✅ Centered Percentage for Correct Guess Percentages */
+/* Centered percentage display */
 .centered-percentage {
     display: flex;
     align-items: center;
     justify-content: center;
-    /*background: rgba(0, 0, 0, 0.8);*/
     color: white;
     width: 100%;
     height: 100%;
-    border-radius: 5px;
     font-size: 16px;
     font-weight: bold;
 }
+
+

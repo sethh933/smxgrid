@@ -103,17 +103,18 @@ https://smxmuse.com/`;
                 {/* ✅ Most Popular Guesses Grid */}
                 <h3>Most Popular Guesses</h3>
                 <div className="grid-wrapper">
-                    <div className="column-headers">
-                        <div className="empty-cell"></div>
-                        {columns.map((col, index) => (
-                            <div key={index} className="header-cell">{col}</div>
-                        ))}
-                    </div>
+                <div className="summary-column-headers">
+    <div className="empty-cell"></div>
+    {columns.map((col, index) => (
+        <div key={index} className="summary-header-cell">{col}</div>
+    ))}
+</div>
+
 
                     <div className="grid-body">
                         {rows.map((row, rowIndex) => (
-                            <div key={rowIndex} className="grid-row">
-                                <div className="header-cell">{row}</div>
+                            <div key={rowIndex} className="summary-grid-row">
+                                <div className="summary-header-cell">{row}</div>
                                 {mostGuessedGrid[rowIndex].map((cell, colIndex) => (
                                     <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
                                         <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
@@ -133,17 +134,18 @@ https://smxmuse.com/`;
                 {/* ✅ Correct Guess Percentages Grid */}
                 <h3>Correct Guess Percentages</h3>
                 <div className="grid-wrapper">
-                    <div className="column-headers">
-                        <div className="empty-cell"></div>
-                        {columns.map((col, index) => (
-                            <div key={index} className="header-cell">{col}</div>
-                        ))}
-                    </div>
+                <div className="summary-column-headers">
+    <div className="empty-cell"></div>
+    {columns.map((col, index) => (
+        <div key={index} className="summary-header-cell">{col}</div>
+    ))}
+</div>
+
 
                     <div className="grid-body">
                         {rows.map((row, rowIndex) => (
-                            <div key={rowIndex} className="grid-row">
-                                <div className="header-cell">{row}</div>
+                            <div key={rowIndex} className="summary-grid-row">
+                                <div className="summary-header-cell">{row}</div>
                                 {correctPercentageGrid[rowIndex].map((cell, colIndex) => (
                                     <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
                                         <div className="centered-percentage">
