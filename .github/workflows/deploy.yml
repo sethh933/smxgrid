@@ -27,6 +27,11 @@ jobs:
       - name: Zip Build Folder
         run: zip -r dist.zip dist/
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Set Node.js Version for Web App
         run: az webapp config set --resource-group MyResourceGroup --name smxmusegrid --linux-fx-version "NODE|18-lts"
 
@@ -36,3 +41,4 @@ jobs:
           app-name: smxmusegrid
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: dist.zip
+
