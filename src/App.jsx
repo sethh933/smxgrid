@@ -115,6 +115,16 @@ useEffect(() => {
   checkExistingGame();
 }, [guestId, gridId]); // ✅ Runs only when guestId and gridId are available
 
+useEffect(() => {
+  const hasSeenHowToPlay = localStorage.getItem("hasSeenHowToPlay");
+
+  if (!hasSeenHowToPlay) {
+    setIsHowToPlayOpen(true);
+    localStorage.setItem("hasSeenHowToPlay", "true");
+  }
+}, []);
+
+
 
 const resetGameForNewDay = () => {
   const previousGames = JSON.parse(localStorage.getItem("previous_games")) || {};
