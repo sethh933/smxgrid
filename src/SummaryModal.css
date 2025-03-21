@@ -7,10 +7,9 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     display: flex;
-    align-items: center;
+    align-items: center; /* Centered by default for desktop */
     justify-content: center;
 }
-
 /* Modal content */
 .modal-content {
     background: #333;
@@ -128,5 +127,84 @@
     font-size: 16px;
     font-weight: bold;
 }
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .modal-overlay {
+        align-items: flex-start;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        margin-top: 100px; /* Push down below the top header bar */
+        border-radius: 0;
+    }
+
+    h2, h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    p {
+        font-size: 12px;
+    }
+
+    .summary-column-headers {
+        grid-template-columns: 80px repeat(3, 80px);
+    }
+
+    .summary-grid-row {
+        grid-template-columns: 80px repeat(3, 80px);
+    }
+
+    .summary-header-cell {
+        width: 80px;
+        height: 80px;
+        font-size: 9px;
+        padding: 2px;
+    }
+
+    .rider-cell {
+        width: 80px;
+        height: 80px;
+        border: 1px solid white;
+    }
+
+    .rider-name-banner {
+        font-size: 8px;
+        padding: 1px;
+    }
+
+    .guess-percentage {
+        font-size: 8px;
+        padding: 1px 2px;
+    }
+
+    .centered-percentage {
+        font-size: 10px;
+    }
+
+    button.share-button, .close-button {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    body.modal-open {
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+    }
+}
+
+
+
+
+  
 
 
