@@ -27,6 +27,8 @@ function App() {
   const [correctGuesses, setCorrectGuesses] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
+  const [submittingGuess, setSubmittingGuess] = useState(false);
+
 
 
 
@@ -333,12 +335,12 @@ const fetchGameSummary = async () => {
   
 
 const handleSubmit = async (selectedRider = riderName) => {
-  if (!selectedCell || selectedRider.trim() === "") return;
+  if (!selectedCell || selectedRider.trim() === "" || submittingGuess) return;  // Block if already submitting
   if (guessesLeft <= 0) {
     alert("No more attempts left!");
     return;
   }
-
+  setSubmittingGuess(true);  // 🚨 Start lock
   try {
     // ✅ Ensure the game exists before submitting the first guess
     if (!localStorage.getItem("game_id")) {
@@ -424,6 +426,8 @@ const handleSubmit = async (selectedRider = riderName) => {
   } catch (error) {
     console.error("Error submitting guess:", error);
     alert(error.response?.data?.detail || "An error occurred");
+  } finally {
+    setSubmittingGuess(false);  // ✅ End lock no matter what
   }
 };
 
@@ -585,14 +589,16 @@ return (
         <span className={isIncorrect ? "incorrect-guess" : ""}>{suggestion}</span>
         {!isIncorrect && (
           <button
-            className="select-button"
-            onClick={async () => {
-              setRiderName(suggestion);
-              await handleSubmit(suggestion);
-            }}
-          >
-            Select
-          </button>
+  className="select-button"
+  disabled={submittingGuess}
+  onClick={async () => {
+    setRiderName(suggestion);
+    await handleSubmit(suggestion);
+  }}
+>
+  Select
+</button>
+
         )}
       </li>
     );
