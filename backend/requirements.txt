@@ -4,5 +4,4 @@ pyodbc
 pydantic
 python-dotenv
 orjson
-uuid
 
