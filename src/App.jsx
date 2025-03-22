@@ -479,6 +479,7 @@ return (
       </div>
     ) : (
       <>
+<div className="top-banner-wrapper">
 <div className="top-banner">
   {/* ✅ Wrap logo & text together so they stay left */}
   <div className="banner-left">
@@ -497,6 +498,7 @@ return (
   <button className="social-icon how-to-play-btn" onClick={() => setIsHowToPlayOpen(true)}>
     <FontAwesomeIcon icon={faQuestionCircle} />
   </button>
+</div>
 </div>
 </div>
 
