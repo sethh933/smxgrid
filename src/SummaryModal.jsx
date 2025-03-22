@@ -101,7 +101,7 @@ https://smxmuse.com/`;
                 </button>
 
                 {/* ✅ Most Popular Guesses Grid */}
-                <h3>Most Popular Guesses</h3>
+                <h2>Most Popular Guesses</h2>
                 <div className="grid-wrapper">
                 <div className="summary-column-headers">
     <div className="empty-cell"></div>
@@ -132,7 +132,7 @@ https://smxmuse.com/`;
                 </div>
 
                 {/* ✅ Correct Guess Percentages Grid */}
-                <h3>Correct Guess Percentages</h3>
+                <h2>Correct Guess Percentages</h2>
                 <div className="grid-wrapper">
                 <div className="summary-column-headers">
     <div className="empty-cell"></div>
