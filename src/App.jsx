@@ -484,27 +484,26 @@ return (
     ) : (
       <>
 <div className="top-banner-wrapper">
-<div className="top-banner">
-  {/* ✅ Wrap logo & text together so they stay left */}
-  <div className="banner-left">
-    <span>smxmuse grids by</span>
-    <img src="/smxmuse-logo.png" alt="smxmuse" className="banner-logo" />
+  <div className="top-banner">
+    <div className="banner-left">
+      <span>smxmuse grids by</span>
+      <img src="/smxmuse-logo.png" alt="smxmuse" className="banner-logo" />
+    </div>
+    <div className="social-icons">
+      <a href="https://www.instagram.com/smxmuse" target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon={faInstagram} className="social-icon" />
+      </a>
+      <a href="https://twitter.com/smxmuse" target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon={faXTwitter} className="social-icon" />
+      </a>
+      <button className="social-icon how-to-play-btn" onClick={() => setIsHowToPlayOpen(true)}>
+        <FontAwesomeIcon icon={faQuestionCircle} />
+      </button>
+    </div>
   </div>
+</div>
 
-  {/* ✅ Social Media Icons - Now positioned separately */}
-  <div className="social-icons">
-  <a href="https://www.instagram.com/smxmuse" target="_blank" rel="noopener noreferrer">
-    <FontAwesomeIcon icon={faInstagram} className="social-icon" />
-  </a>
-  <a href="https://twitter.com/smxmuse" target="_blank" rel="noopener noreferrer">
-    <FontAwesomeIcon icon={faXTwitter} className="social-icon" />
-  </a>
-  <button className="social-icon how-to-play-btn" onClick={() => setIsHowToPlayOpen(true)}>
-    <FontAwesomeIcon icon={faQuestionCircle} />
-  </button>
-</div>
-</div>
-</div>
+
 
 
 

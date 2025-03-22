@@ -1,4 +1,9 @@
 /* General Page Styling */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   display: flex;
   justify-content: center;
@@ -244,7 +249,6 @@ body {
   justify-content: center;
   align-items: center;
   gap: 50px; /* Space between grid & side panels */
-  margin-top: -250px;  /* Space below the fixed banner */
   position: relative;
 }
 
@@ -305,8 +309,9 @@ body {
 }
 /* ✅ Full-Width Banner with Proper Font Size & Logo Alignment */
 .top-banner {
-  max-width: 1400px;  
-  margin: 0 auto;      
+  width: 100%;
+  max-width: 1400px; /* contain content */
+  margin: 0 auto; 
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -316,14 +321,22 @@ body {
   color: white;
 }
 
+
 .top-banner-wrapper {
   width: 100%;
   background-color: black;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  z-index: 1000;
+  overflow-x: hidden;
+}
+
+
+
+.top-banner-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .banner-left {
@@ -441,7 +454,7 @@ body {
 
   .input-box {
     width: 95%;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .top-banner {
