@@ -361,7 +361,7 @@ const handleSubmit = async (selectedRider = riderName) => {
     );
 
     console.log("Guess response:", response.data);
-    alert(response.data.message);
+    // alert(response.data.message);
 
     setGuessesLeft(response.data.remaining_attempts);
 
@@ -447,7 +447,7 @@ const handleGiveUp = async () => {
 
     // ✅ Now proceed with the give-up process
     const response = await axios.post(`${API_BASE_URL}/give-up?guest_id=${guestId}`);
-    alert(response.data.message);
+    // alert(response.data.message);
 
     setGuessesLeft(0);
     setGameOver(true);
