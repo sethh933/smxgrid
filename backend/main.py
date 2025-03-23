@@ -262,7 +262,7 @@ import pyodbc
 from fastapi import FastAPI, HTTPException
 
 # ✅ New endpoint to generate first, then archive and switch
-@app.post("/generate-and-archive-switch")
+@app.api_route("/generate-and-archive-switch", methods=["GET", "POST"])
 def generate_and_archive_switch():
     today = date.today()
 
