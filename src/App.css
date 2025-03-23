@@ -250,6 +250,7 @@ body {
   align-items: center;
   gap: 50px; /* Space between grid & side panels */
   position: relative;
+  margin-top: -175px; /* Move the whole layout up */
 }
 
 /* Side Panel (Guess Counter & Give Up Button) */
