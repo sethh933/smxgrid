@@ -204,30 +204,33 @@ def fetch_riders_for_criterion(criterion: str, conn) -> Set[str]:
     return set()
 
 
-def generate_valid_grid():
-    """Attempts to generate a valid grid using real data."""
+def generate_valid_grid(excluded_criteria=None):
+    """Attempts to generate a valid grid using real data, excluding certain criteria."""
     with pyodbc.connect(CONN_STR) as conn:
         start_time = time.time()
         print("Starting grid generation...")  # Debugging
         
+        available_criteria = [c for c in criteria_pool if c not in (excluded_criteria or [])]
+
         for attempt in range(50):  # Try up to 50 times
             elapsed_time = time.time() - start_time
             if elapsed_time > 60:
                 print("Grid generation timed out!")  # Debugging
                 raise HTTPException(status_code=500, detail="Grid generation timeout")
 
-            chosen_criteria = random.sample(criteria_pool, 6)
+            chosen_criteria = random.sample(available_criteria, 6)
             rows, cols = chosen_criteria[:3], chosen_criteria[3:]
             print(f"Attempt {attempt+1}: Selected Rows: {rows}, Columns: {cols}")  # Debugging
 
-            # ✅ Ensure valid row-column pairs (Fix Here)
+            # ✅ Ensure valid row-column pairs
             invalid_found = any(
-                row in invalid_pairings and col in invalid_pairings[row] for row in rows for col in cols
+                row in invalid_pairings and col in invalid_pairings[row] 
+                for row in rows for col in cols
             )
             
             if invalid_found:
                 print("⚠️ Invalid row-column pairing detected. Retrying...")
-                continue  # Skip and regenerate grid
+                continue
 
             # ✅ Fetch riders for the grid
             grid_data = {
@@ -241,6 +244,7 @@ def generate_valid_grid():
                 return rows, cols, grid_data
 
         raise HTTPException(status_code=500, detail="Failed to generate a playable grid")
+
 
 
 @app.get("/")
@@ -257,61 +261,45 @@ import json
 import pyodbc
 from fastapi import FastAPI, HTTPException
 
-@app.post("/generate-grid")
-def generate_grid():
-    """API endpoint to generate a new grid for today and store it in the database."""
-    global game_state
-
+# ✅ New endpoint to generate first, then archive and switch
+@app.post("/generate-and-archive-switch")
+def generate_and_archive_switch():
     today = date.today()
 
-    try:
-        with pyodbc.connect(CONN_STR) as conn:
-            cursor = conn.cursor()
-            
-            # Check if a grid for today already exists
-            cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE GridDate = ?", today)
-            existing_grid = cursor.fetchone()
+    with pyodbc.connect(CONN_STR) as conn:
+        cursor = conn.cursor()
 
-            if existing_grid:
-                raise HTTPException(status_code=400, detail="A grid for today already exists.")
+        # Get active grid and exclude its criteria
+        cursor.execute("""
+            SELECT Row1, Row2, Row3, Column1, Column2, Column3 
+            FROM dbo.DailyGrids WHERE Status = 'Active'
+        """)
+        active_grid = cursor.fetchone()
 
-            # Generate the grid data
-            rows, cols, grid_data = generate_valid_grid()
+        excluded_criteria = []
+        if active_grid:
+            excluded_criteria = [active_grid[0], active_grid[1], active_grid[2], active_grid[3], active_grid[4], active_grid[5]]
 
-            # Serialize grid_data
-            serialized_grid = {f"{row}|{col}": list(riders) for (row, col), riders in grid_data.items()}
-            serialized_grid_json = json.dumps(serialized_grid)
+        # Generate the new grid first
+        rows, cols, grid_data = generate_valid_grid(excluded_criteria=excluded_criteria)
 
-            # Insert the new grid into the DailyGrids table
-            insert_query = """
+        # Archive old grid and insert new one inside a transaction
+        cursor.execute("BEGIN TRANSACTION")
+        if active_grid:
+            cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
+
+        cursor.execute("""
             INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Active');
-            """
-            cursor.execute(insert_query, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
-            conn.commit()
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
+        """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
 
-            # Retrieve the new GridID
-            cursor.execute("SELECT TOP 1 GridID FROM dbo.DailyGrids WHERE GridDate = ? ORDER BY GridID DESC;", today)
-            grid_id = cursor.fetchone()
+        cursor.execute("COMMIT TRANSACTION")
 
-            if not grid_id:
-                raise HTTPException(status_code=500, detail="Error retrieving GridID after insert.")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving grid: {str(e)}")
-
-    # Update the game state
-    game_state.update({
-        "grid_id": grid_id[0],
-        "grid_data": grid_data,
-        "used_riders": set(),
-        "unanswered_cells": set(grid_data.keys()),
-        "remaining_attempts": 9,
-        "rows": rows,
-        "cols": cols,
-    })
-
-    return {"message": "Grid generated successfully", "rows": rows, "columns": cols, "grid_id": grid_id[0]}
+    return {
+        "message": "New grid generated first and old grid archived with zero downtime.",
+        "new_rows": rows,
+        "new_columns": cols
+    }
 
 from datetime import date
 
