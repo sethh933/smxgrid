@@ -45,9 +45,16 @@
     display: grid;
     grid-template-columns: 150px repeat(3, 150px);
     justify-content: center;
+    height: 175px;  /* Force height to match header cells */
+    align-items: center;
     margin-bottom: 0;
-    
 }
+
+.summary-empty-cell {
+    width: 150px;
+    height: 150px;
+}
+
 
 /* Grid row structure */
 .summary-grid-row {

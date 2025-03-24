@@ -56,8 +56,8 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>For example, if HON is a column and 250 MX Win is a row, Ken Roczen would be a valid answer because he has won a 250 MX overall and ridden for Honda at one point in his career, albeit not
             in the 250 class.</p>
         <p>If a row/column is a decade, for example "Raced in the 2010's", only riders that raced a Supercross main event or qualified for the motos at a Motocross event
-            in that decade will be eligble answers. </p>    
-        <p><strong>Riders are available to be guessed in the game if they meet one of these criteria:</strong></p>
+            in that decade will be eligible answers. </p>    
+        <p><strong>Riders are available to be guessed in the game if they meet at least one of these criteria:</strong></p>
         <p>Raced at least one 250/450 SX Main Event since 1974.</p>
         <p>Raced at least one 125/250 SX Main Event since 1985.</p>
         <p>Raced at least one 250/450 or 500 MX event since 1972*.</p>

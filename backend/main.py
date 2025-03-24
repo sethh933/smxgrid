@@ -65,7 +65,8 @@ criteria_pool = [
     "2+ 250 SX Championships", "2+ 450 MX Championships", "2+ 250 MX Championships", "Raced in the 1970s", "Raced in the 1980s",
     "Raced in the 1990s", "Raced in the 2000s", "Raced in the 2010s", "Raced in the 2020s", "France SX Winner",
     "Australia SX Winner", "Australia", "France", "United States", "20+ 450 SX Wins", "Anaheim 1 450 SX Winner", "Daytona 450 SX Winner", "Red Bud 450 MX Winner",
-    "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Top 20 Moto Finish (1985-Present)", "250 MX Top 20 Moto Finish (1998-Present)"
+    "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Top 20 Moto Finish (1985-Present)", "250 MX Top 20 Moto Finish (1998-Present)", "250 SX LCQ Win", "450 SX LCQ Win",
+    "450 SX Triple Crown Main Win", "250 SX Triple Crown Main Win", "5+ 450 SX Wins in One Season", "5+ 250 SX Wins in One Season"
 ]
 
 # Define invalid row-column pairings (redundant or conflicting)
@@ -119,6 +120,18 @@ def fetch_riders_for_criterion(criterion: str, conn) -> Set[str]:
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1"
     elif criterion == "250 SX Win":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1"
+    elif criterion == "450 SX Triple Crown Main Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)"
+    elif criterion == "250 SX Triple Crown Main Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)"    
+    elif criterion == "250 SX LCQ Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 2 AND l.Result = 1"
+    elif criterion == "450 SX LCQ Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 1 AND l.Result = 1"
+    elif criterion == "5+ 450 SX Wins in One Season":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 1 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName"
+    elif criterion == "5+ 250 SX Wins in One Season":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 2 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName"
     elif criterion == "1+ 250 SX Pole Positions":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 2 AND q.Result = 1"
     elif criterion == "1+ 450 SX Pole Positions":

@@ -104,7 +104,8 @@ https://smxmuse.com/`;
                 <h2>Most Popular Guesses</h2>
                 <div className="grid-wrapper">
                 <div className="summary-column-headers">
-    <div className="empty-cell"></div>
+                <div className="summary-empty-cell"></div>
+
     {columns.map((col, index) => (
         <div key={index} className="summary-header-cell">{col}</div>
     ))}
@@ -135,7 +136,7 @@ https://smxmuse.com/`;
                 <h2>Correct Guess Percentages</h2>
                 <div className="grid-wrapper">
                 <div className="summary-column-headers">
-    <div className="empty-cell"></div>
+                <div className="summary-empty-cell"></div>
     {columns.map((col, index) => (
         <div key={index} className="summary-header-cell">{col}</div>
     ))}
