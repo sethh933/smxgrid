@@ -77,6 +77,7 @@ https://smxmuse.com/`;
     return (
         <div className="modal-overlay">
             <div className="modal-content" ref={modalRef}>
+            <button className="summary-close-button" onClick={onClose}>X</button>
                 <h2>Game Summary</h2>
                 <p><strong>Total Games Played:</strong> {totalGames}</p>
                 <p><strong>Average Score:</strong> {parseFloat(averageScore).toFixed(2)}</p>
@@ -147,7 +148,7 @@ https://smxmuse.com/`;
                 </div>
 
                 {/* ✅ Close Button */}
-                <button onClick={onClose} className="close-button">Close</button>
+                <button className="summary-close-button" onClick={onClose}>X</button>
             </div>
         </div>
     );
