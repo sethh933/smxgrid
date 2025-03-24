@@ -270,34 +270,40 @@ def generate_and_archive_switch():
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # 1️⃣ Get the currently active grid and exclude its criteria
+            # ✅ Get active grid and exclude its criteria
             cursor.execute("""
                 SELECT Row1, Row2, Row3, Column1, Column2, Column3 
                 FROM dbo.DailyGrids 
                 WHERE Status = 'Active'
             """)
             active_grid = cursor.fetchone()
-            excluded_criteria = list(active_grid) if active_grid else []
 
-            # 2️⃣ Generate new grid in memory (but don’t insert yet)
+            excluded_criteria = []
+            if active_grid:
+                excluded_criteria = [
+                    active_grid[0], active_grid[1], active_grid[2],
+                    active_grid[3], active_grid[4], active_grid[5]
+                ]
+
+            # ✅ Generate new grid (but don’t insert yet)
             rows, cols, grid_data = generate_valid_grid(excluded_criteria=excluded_criteria)
 
             if not rows or not cols:
                 raise Exception("Failed to generate grid with current exclusions.")
 
-            # 3️⃣ Start transaction
+            # ✅ Start transaction
             cursor.execute("BEGIN TRANSACTION")
 
-            # 4️⃣ Archive old active grid
+            # ✅ Archive old active grid
             cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
 
-            # 5️⃣ Insert newly generated grid as active
+            # ✅ Insert new active grid
             cursor.execute("""
                 INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
             """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
 
-            # 6️⃣ Commit transaction
+            # ✅ Commit transaction
             cursor.execute("COMMIT TRANSACTION")
 
         return {
@@ -313,6 +319,7 @@ def generate_and_archive_switch():
             pass
         logging.error(f"Grid generation or archive failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Grid generation failed: {str(e)}")
+
 
 
 
