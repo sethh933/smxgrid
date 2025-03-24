@@ -405,7 +405,7 @@ body {
   .game-layout {
     flex-direction: column;
     gap: 20px;
-    margin-top: -50px;
+    margin-top: -75px;
     align-items: center;
   }
 
