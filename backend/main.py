@@ -270,24 +270,38 @@ def generate_and_archive_switch():
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # Generate new grid without exclusions
-            rows, cols, grid_data = generate_valid_grid()
+            # 1️⃣ Get the currently active grid and exclude its criteria
+            cursor.execute("""
+                SELECT Row1, Row2, Row3, Column1, Column2, Column3 
+                FROM dbo.DailyGrids 
+                WHERE Status = 'Active'
+            """)
+            active_grid = cursor.fetchone()
+            excluded_criteria = list(active_grid) if active_grid else []
+
+            # 2️⃣ Generate new grid in memory (but don’t insert yet)
+            rows, cols, grid_data = generate_valid_grid(excluded_criteria=excluded_criteria)
 
             if not rows or not cols:
-                raise Exception("No grid could be generated.")
+                raise Exception("Failed to generate grid with current exclusions.")
 
+            # 3️⃣ Start transaction
             cursor.execute("BEGIN TRANSACTION")
+
+            # 4️⃣ Archive old active grid
             cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
 
+            # 5️⃣ Insert newly generated grid as active
             cursor.execute("""
                 INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
             """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
 
+            # 6️⃣ Commit transaction
             cursor.execute("COMMIT TRANSACTION")
 
         return {
-            "message": "✅ New grid generated first and old grid archived with zero downtime.",
+            "message": "✅ New grid generated and old grid archived successfully.",
             "new_rows": rows,
             "new_columns": cols
         }
@@ -297,8 +311,9 @@ def generate_and_archive_switch():
             cursor.execute("ROLLBACK TRANSACTION")
         except:
             pass
-
+        logging.error(f"Grid generation or archive failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Grid generation failed: {str(e)}")
+
 
 
 from datetime import date
