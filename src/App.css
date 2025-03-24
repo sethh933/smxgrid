@@ -400,6 +400,14 @@ body {
   color: white; /* Match the social icons */
 }
 
+body.modal-open, html.modal-open {
+  overflow: hidden;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+}
+
+
 @media (max-width: 600px) {
   
   .game-layout {

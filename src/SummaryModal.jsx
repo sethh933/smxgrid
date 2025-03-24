@@ -28,19 +28,6 @@ const SummaryModal = ({
         gridId
     });
 
-    // ✅ Disable scrolling when modal is open
-    useEffect(() => {
-        if (isOpen) {
-            document.body.classList.add("modal-open");
-        } else {
-            document.body.classList.remove("modal-open");
-        }
-        return () => {
-            document.body.classList.remove("modal-open");
-        };
-    }, [isOpen]);
-    
-
 
     // ✅ Close modal if clicking outside of it
     useEffect(() => {

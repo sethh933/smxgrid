@@ -45,6 +45,14 @@ useEffect(() => {
   return () => document.removeEventListener("click", handleClickOutside);
 }, [selectedCell]);
 
+useEffect(() => {
+  if (isSummaryOpen || isHowToPlayOpen) {
+    document.body.classList.add("modal-open");
+  } else {
+    document.body.classList.remove("modal-open");
+  }
+}, [isSummaryOpen, isHowToPlayOpen]);
+
 
 // ✅ Generate or Retrieve UUID from LocalStorage
 useEffect(() => {
