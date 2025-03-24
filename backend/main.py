@@ -266,40 +266,40 @@ from fastapi import FastAPI, HTTPException
 def generate_and_archive_switch():
     today = date.today()
 
-    with pyodbc.connect(CONN_STR) as conn:
-        cursor = conn.cursor()
+    try:
+        with pyodbc.connect(CONN_STR) as conn:
+            cursor = conn.cursor()
 
-        # Get active grid and exclude its criteria
-        cursor.execute("""
-            SELECT Row1, Row2, Row3, Column1, Column2, Column3 
-            FROM dbo.DailyGrids WHERE Status = 'Active'
-        """)
-        active_grid = cursor.fetchone()
+            # Generate new grid without exclusions
+            rows, cols, grid_data = generate_valid_grid()
 
-        excluded_criteria = []
-        if active_grid:
-            excluded_criteria = [active_grid[0], active_grid[1], active_grid[2], active_grid[3], active_grid[4], active_grid[5]]
+            if not rows or not cols:
+                raise Exception("No grid could be generated.")
 
-        # Generate the new grid first
-        rows, cols, grid_data = generate_valid_grid(excluded_criteria=excluded_criteria)
-
-        # Archive old grid and insert new one inside a transaction
-        cursor.execute("BEGIN TRANSACTION")
-        if active_grid:
+            cursor.execute("BEGIN TRANSACTION")
             cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
 
-        cursor.execute("""
-            INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
-        """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
+            cursor.execute("""
+                INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
+            """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
 
-        cursor.execute("COMMIT TRANSACTION")
+            cursor.execute("COMMIT TRANSACTION")
 
-    return {
-        "message": "New grid generated first and old grid archived with zero downtime.",
-        "new_rows": rows,
-        "new_columns": cols
-    }
+        return {
+            "message": "✅ New grid generated first and old grid archived with zero downtime.",
+            "new_rows": rows,
+            "new_columns": cols
+        }
+
+    except Exception as e:
+        try:
+            cursor.execute("ROLLBACK TRANSACTION")
+        except:
+            pass
+
+        raise HTTPException(status_code=500, detail=f"Grid generation failed: {str(e)}")
+
 
 from datetime import date
 
