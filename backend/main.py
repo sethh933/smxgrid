@@ -65,7 +65,7 @@ criteria_pool = [
     "2+ 250 SX Championships", "2+ 450 MX Championships", "2+ 250 MX Championships", "Raced in the 1970s", "Raced in the 1980s",
     "Raced in the 1990s", "Raced in the 2000s", "Raced in the 2010s", "Raced in the 2020s", "France SX Winner",
     "Australia SX Winner", "Australia", "France", "United States", "20+ 450 SX Wins", "Anaheim 1 450 SX Winner", "Daytona 450 SX Winner", "Red Bud 450 MX Winner",
-    "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Moto Top 20 Finish (1985-Present)", "250 MX Moto Top 20 Finish (1998-Present)"
+    "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Top 20 Moto Finish (1985-Present)", "250 MX Top 20 Moto Finish (1998-Present)"
 ]
 
 # Define invalid row-column pairings (redundant or conflicting)
@@ -139,9 +139,9 @@ def fetch_riders_for_criterion(criterion: str, conn) -> Set[str]:
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 1"
     elif criterion == "1+ 250 MX Championships":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 2"
-    elif criterion == "450 MX Moto Top 20 Finish (1985-Present)":
+    elif criterion == "450 MX Top 20 Moto Finish (1985-Present)":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mo ON r.RiderID = mo.riderID WHERE mo.ClassID = 1 AND (mo.moto1 <= 20 OR mo.moto2 <= 20)"
-    elif criterion == "250 MX Moto Top 20 Finish (1998-Present)":
+    elif criterion == "250 MX Top 20 Moto Finish (1998-Present)":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mo ON r.RiderID = mo.riderID WHERE mo.ClassID = 2 AND (mo.moto1 <= 20 OR mo.moto2 <= 20)"
     elif criterion == "2+ 450 SX Championships":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.ClassID = 1 GROUP BY r.FullName HAVING COUNT(c.Year) >= 2"
@@ -212,9 +212,9 @@ def generate_valid_grid(excluded_criteria=None):
         
         available_criteria = [c for c in criteria_pool if c not in (excluded_criteria or [])]
 
-        for attempt in range(50):  # Try up to 50 times
+        for attempt in range(100):  # Try up to 50 times
             elapsed_time = time.time() - start_time
-            if elapsed_time > 60:
+            if elapsed_time > 120:
                 print("Grid generation timed out!")  # Debugging
                 raise HTTPException(status_code=500, detail="Grid generation timeout")
 

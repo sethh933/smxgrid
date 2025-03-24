@@ -6,7 +6,7 @@ import azure.functions as func
 app = func.FunctionApp()
 
 @app.timer_trigger(schedule="0 0 0 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
-def smxgridgenerator(mytimer: func.TimerRequest) -> None:
+def main(myTimer: func.TimerRequest) -> None:
     try:
         url = "https://smxmusegrid.azurewebsites.net/generate-and-archive-switch"
         response = requests.post(url)
