@@ -36,11 +36,12 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <h2>How to Play</h2>
         <p>Select a rider that fits the criteria for each cell's row and column.</p>
         <p>You have nine guesses to complete the grid.</p>
+        <p>Riders cannot be used twice.</p>
+        <p>A new grid releases at 3:00am ET every day. </p>
         <p>The primary goal is to correctly guess all nine cells.</p>
         <p>The secondary goal is to have a low rarity score. The more rare the rider, the lower the rarity score.</p>
         <p>Rarity score is the sum of your guess percentages. Any cell unanswered upon the game's completion adds 100 to the score.</p> 
         <p>The percentage displayed in each cell after a correct guess shows how often that rider has been selected for that cell.</p>
-        <p>Riders cannot be used twice.</p>
         <p>If a row/column is a manufacturer, you can select a rider that has ridden for that manufacturer at any point in their career, 250 or 450 class.</p>
         <p>For example, if HON is a column and 250 MX Win is a row, Ken Roczen would be a valid answer because he has won a 250 MX overall and ridden for Honda at one point in his career, albeit not
             in the 250 class.</p>
