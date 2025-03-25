@@ -144,7 +144,6 @@
 
 body.modal-open {
     overflow: hidden;
-    position: relative; /* no fixed here, allows modal to scroll */
 }
 
 /* Mobile adjustments */
@@ -222,9 +221,6 @@ body.modal-open {
     body.modal-open {
         position: fixed;
         width: 100%;
-        overflow: hidden;
-        top: 0;
-        left: 0;
     }
 }
 
