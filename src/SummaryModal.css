@@ -10,11 +10,13 @@
     align-items: center; /* Centered by default for desktop */
     justify-content: center;
 }
+
 /* Modal content */
 .modal-content {
     position: relative;
     background: #333;
     padding: 10px;
+    padding-bottom: 50px; /* <-- Add bottom padding to prevent cutoff */
     border-radius: 10px;
     width: 90%;
     max-width: 700px;
@@ -35,7 +37,6 @@
     z-index: 1001;
 }
 
-
 /* Grid wrapper */
 .grid-wrapper {
     display: flex;
@@ -48,7 +49,7 @@
     display: grid;
     grid-template-columns: 150px repeat(3, 150px);
     justify-content: center;
-    height: 175px;  /* Force height to match header cells */
+    height: 175px;
     align-items: center;
     margin-bottom: 0;
 }
@@ -57,7 +58,6 @@
     width: 150px;
     height: 150px;
 }
-
 
 /* Grid row structure */
 .summary-grid-row {
@@ -95,14 +95,12 @@
     box-sizing: border-box;
 }
 
-/* Rider image fill */
 .rider-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* Rider name banner */
 .rider-name-banner {
     position: absolute;
     bottom: 0;
@@ -114,7 +112,6 @@
     font-size: 12px;
 }
 
-/* Guess percentage in top-left corner */
 .guess-percentage {
     position: absolute;
     top: 3px;
@@ -127,7 +124,6 @@
     font-weight: bold;
 }
 
-/* Centered percentage display */
 .centered-percentage {
     display: flex;
     align-items: center;
@@ -142,9 +138,7 @@
 .modal-content h3 {
     margin-bottom: 0px;
     margin-top: 70px;
-    
 }
-
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
@@ -161,6 +155,7 @@
         margin-top: 80px;
         border-radius: 0;
         position: relative;
+        padding-bottom: 60px; /* slightly more bottom space on mobile */
     }
 
     h2, h3 {
@@ -174,7 +169,7 @@
 
     .summary-column-headers {
         grid-template-columns: 80px repeat(3, 80px);
-        height: 90px; /* Adjust so it doesn’t leave unnecessary space */
+        height: 90px;
         align-items: center;
         margin-bottom: 0;
     }
@@ -227,11 +222,8 @@
         top: 0;
         left: 0;
     }
-
-    .modal-content {
-        padding-bottom: 100px; /* More space at bottom for scrolling on mobile */
-    }
 }
+
 
 
 
