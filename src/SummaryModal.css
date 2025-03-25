@@ -6,23 +6,25 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
+    overflow-y: auto;
     display: flex;
-    align-items: center; /* Centered by default for desktop */
     justify-content: center;
+    align-items: flex-start; /* Important: start from top for mobile */
+    padding: 20px 0; /* Add spacing top/bottom */
+    z-index: 1000;
 }
 
-/* Modal content */
 .modal-content {
     position: relative;
     background: #333;
     padding: 10px;
-    padding-bottom: 50px; /* <-- Add bottom padding to prevent cutoff */
+    padding-bottom: 80px; /* Extra space at the bottom for scrolling comfort */
     border-radius: 10px;
     width: 90%;
     max-width: 700px;
-    max-height: 90vh;
     overflow-y: auto;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .summary-close-button {
@@ -140,22 +142,24 @@
     margin-top: 70px;
 }
 
+body.modal-open {
+    overflow: hidden;
+    position: relative; /* no fixed here, allows modal to scroll */
+}
+
 /* Mobile adjustments */
 @media (max-width: 600px) {
     .modal-overlay {
         align-items: flex-start;
-        overflow: hidden;
-        padding: 0;
+        padding: 40px 0; /* More breathing room */
     }
 
     .modal-content {
-        width: 100%;
-        max-height: 80vh;
-        overflow-y: auto;
-        margin-top: 80px;
+        width: 95%;
+        margin: 0 auto;
+        padding-bottom: 100px; /* Add even more space for safe scrolling */
         border-radius: 0;
         position: relative;
-        padding-bottom: 60px; /* slightly more bottom space on mobile */
     }
 
     h2, h3 {
@@ -223,7 +227,6 @@
         left: 0;
     }
 }
-
 
 
 
