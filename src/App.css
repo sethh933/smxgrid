@@ -409,7 +409,6 @@ body.modal-open, html.modal-open {
 
 
 @media (max-width: 600px) {
-  
   .game-layout {
     flex-direction: column;
     gap: 20px;
@@ -419,18 +418,16 @@ body.modal-open, html.modal-open {
 
   .column-headers {
     display: grid;
-    grid-template-columns: 80px 80px 80px 80px; /* empty cell + 3 headers */
+    grid-template-columns: 80px 80px 80px 80px;
     justify-content: center;
-    align-items: center;
-    height: 90px;
+    height: 80px;
     margin-bottom: 5px;
   }
 
   .grid-row {
     display: grid;
-    grid-template-columns: 80px 80px 80px 80px; /* row header + 3 grid cells */
-    justify-content: center;
-    align-items: center;
+    grid-template-columns: 80px 80px 80px 80px;
+    height: 80px; /* Force the row height to match grid-cell height */
   }
 
   .empty-cell, 
@@ -446,17 +443,19 @@ body.modal-open, html.modal-open {
   }
 
   .grid-cell {
-    width: 81.6px;
-    height: 81.6px;
-    border: 0.5px solid white;
+    width: 80px;
+    height: 80px;
+    border: 1px solid white;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    box-sizing: border-box;
   }
 
   .grid-cell img.rider-image {
     border-radius: 4px;
+    display: block;
   }
 
   .rider-name-banner {
@@ -533,18 +532,22 @@ body.modal-open, html.modal-open {
     overflow-x: hidden;
   }
 
+  /* Only border the actual grid cells (not header or empty cells) */
+  .header-cell,
+  .empty-cell {
+    border: none !important;
+  }
+
   @media (min-width: 601px) {
     .banner-left {
-      margin-left: 95px; /* Only on desktop */
+      margin-left: 95px;
     }
-  
     .social-icons {
-      margin-right: 275px; /* Only on desktop */
+      margin-right: 275px;
     }
   }
-  
-  
 }
+
 
 
 
