@@ -158,8 +158,9 @@
         width: 100%;
         max-height: 80vh;
         overflow-y: auto;
-        margin-top: 100px; /* Push down below the top header bar */
+        margin-top: 80px;
         border-radius: 0;
+        position: relative;
     }
 
     h2, h3 {
@@ -173,6 +174,14 @@
 
     .summary-column-headers {
         grid-template-columns: 80px repeat(3, 80px);
+        height: 90px; /* Adjust so it doesn’t leave unnecessary space */
+        align-items: center;
+        margin-bottom: 0;
+    }
+
+    .summary-empty-cell {
+        width: 80px;
+        height: 80px;
     }
 
     .summary-grid-row {
