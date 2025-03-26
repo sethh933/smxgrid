@@ -39,6 +39,17 @@
     z-index: 1001;
 }
 
+.share-button {
+    color: white;
+    background-color: #111; /* or your default background */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
 /* Grid wrapper */
 .grid-wrapper {
     display: flex;

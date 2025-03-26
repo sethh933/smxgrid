@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./SummaryModal.css";
 
 const SummaryModal = ({
@@ -17,6 +17,9 @@ const SummaryModal = ({
     if (!isOpen) return null; // Don't render if modal is closed
 
     const modalRef = useRef(null); // ✅ Reference for modal content
+
+    const [copySuccess, setCopySuccess] = useState(false);
+
 
     // ✅ Console log for debugging (kept exactly as you had it)
     console.log("Summary Modal Data:", {
@@ -70,9 +73,13 @@ https://smxmuse.com/`;
     const handleCopyResults = () => {
         const shareText = generateShareText();
         navigator.clipboard.writeText(shareText)
-            .then(() => alert("Results copied to clipboard!"))
+            .then(() => {
+                setCopySuccess(true);
+                setTimeout(() => setCopySuccess(false), 3000); // Reset after 5 seconds
+            })
             .catch(err => console.error("Error copying text: ", err));
     };
+    
 
     return (
         <div className="modal-overlay">
@@ -83,10 +90,15 @@ https://smxmuse.com/`;
                 <p><strong>Average Score:</strong> {parseFloat(averageScore).toFixed(2)}</p>
                 <p><strong>Rarity Score:</strong> {rarityScores !== undefined ? rarityScores : "N/A"}</p>
 
-                {/* ✅ Share Button */}
-                <button className="share-button" onClick={handleCopyResults}>
-                    Copy Results for Sharing
-                </button>
+                <button 
+    className="share-button" 
+    onClick={handleCopyResults} 
+    disabled={copySuccess}
+>
+    {copySuccess ? "Results copied to clipboard!" : "Copy Results for Sharing"}
+</button>
+
+
 
                 {/* ✅ Most Popular Guesses Grid */}
                 <h2>Most Popular Guesses</h2>
