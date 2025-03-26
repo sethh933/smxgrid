@@ -38,8 +38,6 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>You have nine guesses to complete the grid.</p>
         <p>Riders cannot be used twice.</p>
         <p>A new grid releases at 3:00am ET every day. </p>
-        <p>The primary goal is to correctly guess all nine cells.</p>
-        <p>The secondary goal is to have a low rarity score. The more rare the rider, the lower the rarity score.</p>
         <p>Rarity score is the sum of your guess percentages. Any cell unanswered upon the game's completion adds 100 to the score.</p> 
         <p>The percentage displayed in each cell after a correct guess shows how often that rider has been selected for that cell.</p>
         <p>If a row/column is a manufacturer, you can select a rider that has ridden for that manufacturer at any point in their career, 250 or 450 class.</p>
@@ -59,6 +57,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Raced at least one 250/450 SX Heat Race since 2003.</p>
         <p>Raced at least one 125/250 SX LCQ since 2003.</p>
         <p>Raced at least one 250/450 SX LCQ since 2003.</p>
+        <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are present in accessible historical records in that time frame.</p>
     
       </div>
     </div>
