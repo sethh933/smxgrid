@@ -12,6 +12,8 @@ from datetime import datetime
 from uuid import UUID, uuid4
 from fastapi import HTTPException
 from fastapi import Request
+from dotenv import load_dotenv
+load_dotenv()
 
 
 
@@ -34,15 +36,17 @@ app.add_middleware(
 )
 
 # Azure SQL Connection Details
+import os
 CONN_STR = (
-    "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=tcp:smxmuse.database.windows.net;"
-    "DATABASE=smxmuse;"
-    "UID=smxmuseadmin;"
-    "PWD=Anaheim12025!;"
+    f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+    f"SERVER=tcp:{os.getenv('DB_SERVER')};"
+    f"DATABASE={os.getenv('DB_NAME')};"
+    f"UID={os.getenv('DB_USER')};"
+    f"PWD={os.getenv('DB_PASSWORD')};"
     "Encrypt=yes;TrustServerCertificate=no;"
     "MARS_Connection=yes;"
 )
+
 
 # ✅ Store game state globally
 game_state = {
