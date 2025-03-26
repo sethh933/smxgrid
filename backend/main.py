@@ -13,7 +13,16 @@ from uuid import UUID, uuid4
 from fastapi import HTTPException
 from fastapi import Request
 from dotenv import load_dotenv
-load_dotenv()
+import os
+from pathlib import Path
+
+# Load .env.local from the same folder as main.py
+env_path = Path(__file__).resolve().parent / ".env.local"
+load_dotenv(dotenv_path=env_path)
+
+print("DEBUG - DB_SERVER:", os.getenv("DB_SERVER"))
+
+
 
 
 
@@ -36,7 +45,6 @@ app.add_middleware(
 )
 
 # Azure SQL Connection Details
-import os
 CONN_STR = (
     f"DRIVER={{ODBC Driver 18 for SQL Server}};"
     f"SERVER=tcp:{os.getenv('DB_SERVER')};"
