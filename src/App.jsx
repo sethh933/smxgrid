@@ -32,6 +32,7 @@ function App() {
 
 
 
+  
 
   // ✅ Close the input container when clicking anywhere else
 useEffect(() => {
