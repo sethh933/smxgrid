@@ -78,7 +78,8 @@ criteria_pool = [
     "Raced in the 1990s", "Raced in the 2000s", "Raced in the 2010s", "Raced in the 2020s", "France SX Winner",
     "Australia SX Winner", "Australia", "France", "United States", "20+ 450 SX Wins", "Anaheim 1 450 SX Winner", "Daytona 450 SX Winner", "Red Bud 450 MX Winner",
     "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Top 20 Moto Finish (1985-Present)", "250 MX Top 20 Moto Finish (1998-Present)", "250 SX LCQ Win", "450 SX LCQ Win",
-    "450 SX Triple Crown Main Win", "250 SX Triple Crown Main Win", "5+ 450 SX Wins in One Season", "5+ 250 SX Wins in One Season"
+    "450 SX Triple Crown Main Win", "250 SX Triple Crown Main Win", "5+ 450 SX Wins in One Season", "5+ 250 SX Wins in One Season", "450 SX Triple Crown Overall Win", "250 SX Triple Crown Overall Win",
+    "250 SX East/West Showdown Win"
 ]
 
 # Define invalid row-column pairings (redundant or conflicting)
@@ -102,7 +103,9 @@ invalid_pairings = {
     "10+ 450 SX Podiums": ["20+ 450 SX Wins"],
     "20+ 450 SX Wins": ["10+ 450 SX Podiums"],
     "450 SX Win": ["20+ 450 SX Wins"],
-    "20+ 450 SX Wins": ["450 SX Win"]
+    "20+ 450 SX Wins": ["450 SX Win"],
+    "250 SX East/West Showdown Win": ["250 SX Win"],
+    "250 SX Win": ["250 SX East/West Showdown Win"]
 }
 
 def is_strongly_playable(grid_data: Dict[Tuple[str, str], Set[str]]) -> bool:
@@ -136,6 +139,12 @@ def fetch_riders_for_criterion(criterion: str, conn) -> Set[str]:
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1"
     elif criterion == "250 SX Win":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1"
+    elif criterion == "250 SX East/West Showdown Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.CoastID = 3 AND m.Result = 1"
+    elif criterion == "450 SX Triple Crown Overall Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TC1 IS NOT NULL"
+    elif criterion == "250 SX Triple Crown Overall Win":
+        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1 AND m.TC1 IS NOT NULL"
     elif criterion == "450 SX Triple Crown Main Win":
         query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)"
     elif criterion == "250 SX Triple Crown Main Win":
