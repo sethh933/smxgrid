@@ -12,7 +12,7 @@ import debounce from "lodash/debounce";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function App() {
-  const [grid, setGrid] = useState(Array(3).fill(Array(3).fill(""))); // 3x3 empty grid
+  const [grid, setGrid] = useState(Array(3).fill(Array(3).fill("")));
   const [rows, setRows] = useState([]);
   const [columns, setColumns] = useState([]);
   const [guessesLeft, setGuessesLeft] = useState(9);
@@ -24,9 +24,9 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [guestId, setGuestId] = useState(null);
-  const [gridId, setGridId] = useState(null); // Track the active grid ID
+  const [gridId, setGridId] = useState(null);
   const [correctGuesses, setCorrectGuesses] = useState(new Set());
-  const [isLoading, setIsLoading] = useState(true); // ✅ New loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
   const [submittingGuess, setSubmittingGuess] = useState(false);
 
@@ -315,39 +315,41 @@ const fetchGameSummary = async () => {
     setSuggestions([]);
   };
   
-  // ✅ Debounced autocomplete fetch
-  const debouncedFetchSuggestions = useRef(
-    debounce(async (input) => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/autocomplete?query=${input}`);
-        if (response.data?.riders) {
-          setSuggestions(response.data.riders);
-        } else {
-          setSuggestions([]);
-        }
-      } catch (error) {
-        console.error("Error fetching autocomplete suggestions:", error);
+// ✅ Debounced autocomplete fetch
+const debouncedFetchSuggestions = useRef(
+  debounce(async (input) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/autocomplete?query=${input}`);
+      if (response.data?.riders) {
+        setSuggestions(response.data.riders);
+      } else {
         setSuggestions([]);
       }
-    }, 500)
-  ).current;
-
-  useEffect(() => {
-    return () => {
-      debouncedFetchSuggestions.cancel();
-    };
-  }, []);
-
-   // Replace your old handleInputChange with this:
-   const handleInputChange = (event) => {
-    const input = event.target.value;
-    setRiderName(input);
-    if (input.length >= 2) {
-      debouncedFetchSuggestions(input);
-    } else {
+    } catch (error) {
+      console.error("Error fetching autocomplete suggestions:", error);
       setSuggestions([]);
     }
+  }, 500)
+).current;
+
+useEffect(() => {
+  return () => {
+    debouncedFetchSuggestions.cancel();
   };
+}, []);
+
+
+// Replace your old handleInputChange with this:
+const handleInputChange = (event) => {
+  const input = event.target.value;
+  setRiderName(input);
+  if (input.length >= 2) {
+    debouncedFetchSuggestions(input);
+  } else {
+    setSuggestions([]);
+  }
+};
+
 
   
 
