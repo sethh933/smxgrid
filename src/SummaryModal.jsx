@@ -22,14 +22,14 @@ const SummaryModal = ({
 
 
     // ✅ Console log for debugging (kept exactly as you had it)
-    console.log("Summary Modal Data:", {
+    //console.log("Summary Modal Data:", {
         totalGames,
         averageScore,
         rarityScores,
         mostGuessedGrid,
         correctPercentageGrid,
         gridId
-    });
+   // });
 
 
     // ✅ Close modal if clicking outside of it

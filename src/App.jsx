@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
-import SummaryModal from "./SummaryModal.jsx"; // ✅ Import Summary Modal
+import SummaryModal from "./SummaryModal.jsx";
 import { v4 as uuidv4 } from 'uuid';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faInstagram, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import HowToPlayModal from "./HowToPlayModal";
+import debounce from "lodash/debounce";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -314,32 +315,39 @@ const fetchGameSummary = async () => {
     setSuggestions([]);
   };
   
+  // ✅ Debounced autocomplete fetch
+  const debouncedFetchSuggestions = useRef(
+    debounce(async (input) => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/autocomplete?query=${input}`);
+        if (response.data?.riders) {
+          setSuggestions(response.data.riders);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching autocomplete suggestions:", error);
+        setSuggestions([]);
+      }
+    }, 500)
+  ).current;
 
-  // Handle input change
-  const handleInputChange = async (event) => {
+  useEffect(() => {
+    return () => {
+      debouncedFetchSuggestions.cancel();
+    };
+  }, []);
+
+   // Replace your old handleInputChange with this:
+   const handleInputChange = (event) => {
     const input = event.target.value;
     setRiderName(input);
-
     if (input.length >= 2) {
-        try {
-            //console.log(`Fetching autocomplete for: ${input}`);
-            
-            const response = await axios.get(`${API_BASE_URL}/autocomplete?query=${input}`);
-            //console.log("Autocomplete response:", response.data);
-            
-            if (response.data && response.data.riders) {
-                setSuggestions(response.data.riders);
-            } else {
-                setSuggestions([]);
-            }
-        } catch (error) {
-            console.error("Error fetching autocomplete suggestions:", error);
-            setSuggestions([]); // ✅ Ensure it resets on failure
-        }
+      debouncedFetchSuggestions(input);
     } else {
-        setSuggestions([]);
+      setSuggestions([]);
     }
-};
+  };
 
   
 
