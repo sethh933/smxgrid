@@ -32,7 +32,7 @@ function App() {
 
 
 
-  
+
 
   // ✅ Close the input container when clicking anywhere else
 useEffect(() => {
@@ -79,7 +79,7 @@ useEffect(() => {
   const initializeGrid = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/grid?guest_id=${guestId}`);
-      console.log("Fetched Grid Data:", response.data);
+      //console.log("Fetched Grid Data:", response.data);
       setRows(response.data.rows);
       setColumns(response.data.columns);
   
@@ -112,7 +112,7 @@ useEffect(() => {
   const checkExistingGame = async () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/start-game?guest_id=${guestId}`);
-      console.log("Start game response:", response.data);
+      // console.log("Start game response:", response.data);
 
       // ✅ Store game_id only if it exists
       if (response.data.game_id) {
@@ -185,7 +185,7 @@ useEffect(() => {
 const startGame = async (guestId) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/start-game?guest_id=${guestId}`);
-    console.log("Game started:", response.data);
+    //console.log("Game started:", response.data);
   } catch (error) {
     console.error("Error starting game:", error.response?.data?.detail || error.message);
   }
@@ -201,7 +201,7 @@ useEffect(() => {
   let loadedGrid = Array(3).fill(Array(3).fill(""));
 
   if (savedGameState) {
-    console.log("Loading saved game state...");
+    //console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
     loadedGrid = parsedState.grid || loadedGrid;
     setGrid(loadedGrid);
@@ -268,7 +268,7 @@ const fetchGameSummary = async () => {
     const response = await axios.get(`${API_BASE_URL}/game-summary?guest_id=${guestId}`);
     const data = response.data;
 
-    console.log("Game Summary API Response:", data);
+    //console.log("Game Summary API Response:", data);
 
     const formattedMostGuessed = rows.map(row =>
       columns.map(col => {
@@ -283,8 +283,8 @@ const fetchGameSummary = async () => {
       )
     );
 
-    console.log("Formatted Most Guessed Grid:", formattedMostGuessed);
-    console.log("Formatted Correct Guess Percentages:", formattedCorrectPercentages);
+    //console.log("Formatted Most Guessed Grid:", formattedMostGuessed);
+    //console.log("Formatted Correct Guess Percentages:", formattedCorrectPercentages);
 
     setGameSummary({
       ...data,
@@ -322,10 +322,10 @@ const fetchGameSummary = async () => {
 
     if (input.length >= 2) {
         try {
-            console.log(`Fetching autocomplete for: ${input}`);
+            //console.log(`Fetching autocomplete for: ${input}`);
             
             const response = await axios.get(`${API_BASE_URL}/autocomplete?query=${input}`);
-            console.log("Autocomplete response:", response.data);
+            //console.log("Autocomplete response:", response.data);
             
             if (response.data && response.data.riders) {
                 setSuggestions(response.data.riders);
@@ -353,7 +353,7 @@ const handleSubmit = async (selectedRider = riderName) => {
   try {
     // ✅ Ensure the game exists before submitting the first guess
     if (!localStorage.getItem("game_id")) {
-      console.log("No game found, starting a new game...");
+      //console.log("No game found, starting a new game...");
       await axios.post(`${API_BASE_URL}/start-game?guest_id=${guestId}`);
     }
 
@@ -363,7 +363,7 @@ const handleSubmit = async (selectedRider = riderName) => {
       column: columns[selectedCell.col],
     };
 
-    console.log("Submitting guess:", requestBody);
+    //console.log("Submitting guess:", requestBody);
 
     const response = await axios.post(
       `${API_BASE_URL}/guess?guest_id=${guestId}`,
@@ -371,7 +371,7 @@ const handleSubmit = async (selectedRider = riderName) => {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    console.log("Guess response:", response.data);
+    //console.log("Guess response:", response.data);
     // alert(response.data.message);
 
     setGuessesLeft(response.data.remaining_attempts);
@@ -448,9 +448,9 @@ const handleGiveUp = async () => {
 
     // ✅ Ensure the game is started before giving up
     if (!storedGameId) {
-      console.log("No game found, starting a new game before giving up...");
+      //console.log("No game found, starting a new game before giving up...");
       const startResponse = await axios.post(`${API_BASE_URL}/start-game?guest_id=${guestId}`);
-      console.log("Game started for Give Up:", startResponse.data);
+      //console.log("Game started for Give Up:", startResponse.data);
 
       if (startResponse.data.game_id) {
         storedGameId = startResponse.data.game_id;

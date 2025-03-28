@@ -20,7 +20,7 @@ from pathlib import Path
 env_path = Path(__file__).resolve().parent / ".env.local"
 load_dotenv(dotenv_path=env_path)
 
-print("DEBUG - DB_SERVER:", os.getenv("DB_SERVER"))
+# print("DEBUG - DB_SERVER:", os.getenv("DB_SERVER"))
 
 
 
@@ -246,7 +246,7 @@ def generate_valid_grid(excluded_criteria=None):
     """Attempts to generate a valid grid using real data, excluding certain criteria."""
     with pyodbc.connect(CONN_STR) as conn:
         start_time = time.time()
-        print("Starting grid generation...")  # Debugging
+        # print("Starting grid generation...")  # Debugging
         
         available_criteria = [c for c in criteria_pool if c not in (excluded_criteria or [])]
 
@@ -258,7 +258,7 @@ def generate_valid_grid(excluded_criteria=None):
 
             chosen_criteria = random.sample(available_criteria, 6)
             rows, cols = chosen_criteria[:3], chosen_criteria[3:]
-            print(f"Attempt {attempt+1}: Selected Rows: {rows}, Columns: {cols}")  # Debugging
+            # print(f"Attempt {attempt+1}: Selected Rows: {rows}, Columns: {cols}")  # Debugging
 
             # ✅ Ensure valid row-column pairs
             invalid_found = any(
@@ -275,10 +275,10 @@ def generate_valid_grid(excluded_criteria=None):
                 (row, col): fetch_riders_for_criterion(row, conn) & fetch_riders_for_criterion(col, conn)
                 for row in rows for col in cols
             }
-            print(f"Attempt {attempt+1}: Grid Data Generated")  # Debugging
+            # print(f"Attempt {attempt+1}: Grid Data Generated")  # Debugging
 
             if is_strongly_playable(grid_data):
-                print("✅ Valid grid found!")  # Debugging
+                # print("✅ Valid grid found!")  # Debugging
                 return rows, cols, grid_data
 
         raise HTTPException(status_code=500, detail="Failed to generate a playable grid")
@@ -409,7 +409,7 @@ def start_game(guest_id: UUID):
             if existing_game:
                 # ✅ If a game already exists, ensure the game state is consistent
                 if user_id not in game_state or game_state[user_id].get("grid_id") != grid_id:
-                    print(f"🔄 Restoring existing game state for GridID {grid_id}")
+                   # print(f"🔄 Restoring existing game state for GridID {grid_id}")
                     game_state[user_id] = {
                         "grid_id": grid_id,
                         "remaining_attempts": 9,  # Adjust if needed based on the database
@@ -425,7 +425,7 @@ def start_game(guest_id: UUID):
                 }
 
             # ✅ No existing game → Reset and create fresh game state
-            print(f"🆕 New Grid Detected! Resetting game state for GridID {grid_id}")
+            # print(f"🆕 New Grid Detected! Resetting game state for GridID {grid_id}")
             game_state[user_id] = {
                 "grid_id": grid_id,
                 "remaining_attempts": 9,
@@ -469,8 +469,8 @@ def get_grid():
             grid_id = grid[0]
             rows, cols = [grid[1], grid[2], grid[3]], [grid[4], grid[5], grid[6]]
 
-            print(f"DEBUG: Active Grid ID = {grid_id}")
-            print(f"DEBUG: Rows: {rows}, Columns: {cols}")
+            # print(f"DEBUG: Active Grid ID = {grid_id}")
+            # print(f"DEBUG: Rows: {rows}, Columns: {cols}")
 
             # ✅ Generate answers dynamically instead of using GridAnswers table
             grid_data = {
@@ -478,7 +478,7 @@ def get_grid():
                 for row in rows for col in cols
             }
 
-            print(f"DEBUG: Generated Grid Data: {grid_data}")
+            # print(f"DEBUG: Generated Grid Data: {grid_data}")
 
             game_state.update({
                 "grid_id": grid_id,
@@ -558,7 +558,7 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
 
                 game_id = game_id_result[0]
                 guesses_made = 0  # ✅ New game starts with 0 guesses
-                print(f"DEBUG: Created new GameID {game_id} for UserID {user_id} and GridID {grid_id}")
+                # print(f"DEBUG: Created new GameID {game_id} for UserID {user_id} and GridID {grid_id}")
             else:
                 game_id = game_id_result[0]
                 guesses_made = game_id_result[1]  # ✅ Retrieve current guesses made
