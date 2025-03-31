@@ -37,7 +37,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Select a rider that fits the criteria for each cell's row and column.</p>
         <p>You have nine guesses to complete the grid.</p>
         <p>Riders cannot be used twice.</p>
-        <p>A new grid releases at 3:00am ET every day. </p>
+        <p>A new grid releases at 4:00am ET every day. </p>
         <p>Total Games Played is the count of all games played that day.</p>
         <p>Average Score is the average of correct answers per game across all games played that day.</p>
         <p>Rarity score is the sum of your guess percentages. Any cell unanswered upon the game's completion adds 100 to the score.</p> 
