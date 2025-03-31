@@ -15,6 +15,7 @@ from fastapi import Request
 from dotenv import load_dotenv
 import os
 from pathlib import Path
+import logging
 
 # Load .env.local from the same folder as main.py
 env_path = Path(__file__).resolve().parent / ".env.local"
@@ -308,7 +309,17 @@ def generate_and_archive_switch():
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # ✅ Get active grid and exclude its criteria
+            # ✅ Fetch all previously used layouts (row/column positions)
+            cursor.execute("""
+                SELECT Row1, Row2, Row3, Column1, Column2, Column3 
+                FROM dbo.DailyGrids
+            """)
+            used_position_combos = {
+                (row[0], row[1], row[2], row[3], row[4], row[5])
+                for row in cursor.fetchall()
+            }
+
+            # ✅ Fetch active grid to avoid overlap of criteria
             cursor.execute("""
                 SELECT Row1, Row2, Row3, Column1, Column2, Column3 
                 FROM dbo.DailyGrids 
@@ -316,18 +327,56 @@ def generate_and_archive_switch():
             """)
             active_grid = cursor.fetchone()
 
-            excluded_criteria = []
+            active_criteria_set = set()
             if active_grid:
-                excluded_criteria = [
+                active_criteria_set = {
                     active_grid[0], active_grid[1], active_grid[2],
                     active_grid[3], active_grid[4], active_grid[5]
-                ]
+                }
 
-            # ✅ Generate new grid (but don’t insert yet)
-            rows, cols, grid_data = generate_valid_grid(excluded_criteria=excluded_criteria)
+            # ✅ Fetch all unused and non-invalid grids from GridPool
+            cursor.execute("""
+                SELECT GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
+                FROM dbo.GridPool
+                WHERE IsUsed = 0 AND Invalid = 0
+            """)
 
-            if not rows or not cols:
-                raise Exception("Failed to generate grid with current exclusions.")
+            available_grids = cursor.fetchall()
+
+            valid_grid_found = False
+
+            for grid in available_grids:
+                grid_position_tuple = (grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3)
+                grid_criteria = {grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3}
+
+                # Skip if layout was used before
+                if grid_position_tuple in used_position_combos:
+                    continue
+
+                # Skip if any overlap with active criteria
+                if not active_criteria_set.isdisjoint(grid_criteria):
+                    continue
+
+                # ✅ Rebuild grid using live data
+                rows = [grid.Row1, grid.Row2, grid.Row3]
+                cols = [grid.Column1, grid.Column2, grid.Column3]
+                grid_data = {
+                    (row, col): fetch_riders_for_criterion(row, conn) & fetch_riders_for_criterion(col, conn)
+                    for row in rows for col in cols
+                }
+
+                # ✅ Check if it's still playable
+                if is_strongly_playable(grid_data):
+                    selected = grid
+                    grid_id = selected.GridPoolID
+                    valid_grid_found = True
+                    break
+                else:
+                    # ❌ Mark as invalid
+                    cursor.execute("UPDATE dbo.GridPool SET Invalid = 1 WHERE GridPoolID = ?", grid.GridPoolID)
+
+            if not valid_grid_found:
+                raise HTTPException(status_code=500, detail="No valid, playable grids found in GridPool.")
 
             # ✅ Start transaction
             cursor.execute("BEGIN TRANSACTION")
@@ -340,6 +389,9 @@ def generate_and_archive_switch():
                 INSERT INTO dbo.DailyGrids (GridDate, Row1, Row2, Row3, Column1, Column2, Column3, Status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')
             """, today, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
+
+            # ✅ Mark as used
+            cursor.execute("UPDATE dbo.GridPool SET IsUsed = 1 WHERE GridPoolID = ?", grid_id)
 
             # ✅ Commit transaction
             cursor.execute("COMMIT TRANSACTION")
@@ -979,7 +1031,44 @@ def get_game_summary(request: Request):
                 "most_guessed_riders": most_guessed_riders,
                 "cell_completion_rates": cell_completion_rates,
             }
+            
 
     except Exception as e:
         print(f"FATAL ERROR: {str(e)}")  # ✅ Log the actual error message
         raise HTTPException(status_code=500, detail=f"Error fetching game summary: {str(e)}")
+    
+@app.post("/populate-grid-pool")
+def populate_grid_pool(max_to_generate: int = 1000):
+    """Precompute and store valid grids into the GridPool table."""
+    from itertools import combinations
+    inserted_count = 0
+
+    with pyodbc.connect(CONN_STR) as conn:
+        cursor = conn.cursor()
+        all_combinations = list(combinations(criteria_pool, 6))
+        random.shuffle(all_combinations)
+
+        for combo in all_combinations:
+            rows, cols = combo[:3], combo[3:]
+
+            # Skip invalid combinations
+            if any(row in invalid_pairings and col in invalid_pairings[row] for row in rows for col in cols):
+                continue
+
+            grid_data = {
+                (row, col): fetch_riders_for_criterion(row, conn) & fetch_riders_for_criterion(col, conn)
+                for row in rows for col in cols
+            }
+
+            if is_strongly_playable(grid_data):
+                cursor.execute("""
+                    INSERT INTO dbo.GridPool (Row1, Row2, Row3, Column1, Column2, Column3)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, rows[0], rows[1], rows[2], cols[0], cols[1], cols[2])
+                inserted_count += 1
+                conn.commit()
+
+                if inserted_count >= max_to_generate:
+                    break
+
+    return {"message": f"✅ Inserted {inserted_count} valid grids into GridPool."}

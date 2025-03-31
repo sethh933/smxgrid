@@ -64,7 +64,7 @@ const SummaryModal = ({
 Rarity: ${rarityScore}
 ${correctGuesses === totalCells ? "Final Grid:" : ""}
 ${gridEmoji}
-
+@smxmuse
 Play at:
 https://smxmuse.com/`;
     };
