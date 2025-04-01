@@ -396,14 +396,24 @@ const handleSubmit = async (selectedRider = riderName) => {
           ],
         };
     
-        // ✅ Store incorrect guesses in localStorage
+        // ✅ Save incorrect guesses to localStorage
         localStorage.setItem(`incorrect_guesses_${gridId}`, JSON.stringify(updatedIncorrectGuesses));
+    
+        // ✅ Also save updated game state with new guessesLeft
+        const gameState = {
+          grid,
+          guessesLeft: response.data.remaining_attempts,
+          incorrectGuesses: updatedIncorrectGuesses,
+          gameOver: response.data.remaining_attempts === 0,
+        };
+        localStorage.setItem(`game_state_${gridId}`, JSON.stringify(gameState));
     
         return updatedIncorrectGuesses;
       });
     
       return;
     }
+    
     
 
     if (response.data.rider) {

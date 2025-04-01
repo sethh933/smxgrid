@@ -336,9 +336,10 @@ def generate_and_archive_switch():
 
             # ✅ Fetch all unused and non-invalid grids from GridPool
             cursor.execute("""
-                SELECT GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
+                SELECT TOP 1000 GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
                 FROM dbo.GridPool
                 WHERE IsUsed = 0 AND Invalid = 0
+                ORDER BY NEWID()
             """)
 
             available_grids = cursor.fetchall()
