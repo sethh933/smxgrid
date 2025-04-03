@@ -56,6 +56,15 @@ CONN_STR = (
     "MARS_Connection=yes;"
 )
 
+with open("criteria.json") as f:
+    config = json.load(f)
+    criteria_pool = config["criteria_pool"]
+    invalid_pairings = config["invalid_pairings"]
+
+with open("criteria_queries.json") as f:
+    criteria_queries = json.load(f)
+
+
 
 # ✅ Store game state globally
 game_state = {
@@ -68,46 +77,6 @@ game_state = {
     "cols": [],
 }
 
-# Define valid row/column criteria
-criteria_pool = [
-    "450 SX Win", "250 SX Win", "1+ 450 SX Championships", "1+ 250 SX Championships",
-    "10+ 450 SX Podiums", "10+ 250 SX Podiums",
-    "450 SX Race Winner in 3+ Different Years", "SX Multi-Class Winner", "Non-US SX Winner",
-    "450 MX Win", "250 MX Win", "1+ 450 MX Championships", "1+ 250 MX Championships", "10+ 450 MX Podiums",
-    "KTM", "HUS", "YAM", "HON", "SUZ", "KAW", "GAS", "10+ 450 SX Wins", "10+ 250 MX Podiums", "2+ 450 SX Championships",
-    "2+ 250 SX Championships", "2+ 450 MX Championships", "2+ 250 MX Championships", "Raced in the 1970s", "Raced in the 1980s",
-    "Raced in the 1990s", "Raced in the 2000s", "Raced in the 2010s", "Raced in the 2020s", "France SX Winner",
-    "Australia SX Winner", "Australia", "France", "United States", "20+ 450 SX Wins", "Anaheim 1 450 SX Winner", "Daytona 450 SX Winner", "Red Bud 450 MX Winner",
-    "1+ 250 SX Pole Positions", "1+ 450 SX Pole Positions", "450 MX Top 20 Moto Finish (1985-Present)", "250 MX Top 20 Moto Finish (1998-Present)", "250 SX LCQ Win", "450 SX LCQ Win",
-    "450 SX Triple Crown Main Win", "250 SX Triple Crown Main Win", "5+ 450 SX Wins in One Season", "5+ 250 SX Wins in One Season", "450 SX Triple Crown Overall Win", "250 SX Triple Crown Overall Win",
-    "250 SX East/West Showdown Win"
-]
-
-# Define invalid row-column pairings (redundant or conflicting)
-invalid_pairings = {
-    "450 SX Win": ["Daytona 450 SX Winner"],
-    "Daytona 450 SX Winner": ["450 SX Win"],
-    "1+ 450 SX Championships": ["450 SX Win"],
-    "450 SX Win": ["1+ 450 SX Championships"],
-    "1+ 250 SX Championships": ["250 SX Win"],
-    "250 SX Win": ["1+ 250 SX Championships"],
-    "1+ 450 MX Championships": ["450 MX Win"],
-    "450 MX Win": ["1+ 450 MX Championships"],
-    "1+ 250 MX Championships": ["250 MX Win"],
-    "250 MX Win": ["1+ 250 MX Championships"],
-    "450 SX Win": ["Anaheim 1 450 SX Winner"],
-    "Anaheim 1 450 SX Winner": ["450 SX Win"],
-    "Raced in the 1990s": ["Raced in the 2020s"],
-    "Raced in the 2020s": ["Raced in the 1990s"],
-    "Red Bud 450 MX Winner": ["450 MX Win"],
-    "450 MX Win": ["Red Bud 450 MX Winner"],
-    "10+ 450 SX Podiums": ["20+ 450 SX Wins"],
-    "20+ 450 SX Wins": ["10+ 450 SX Podiums"],
-    "450 SX Win": ["20+ 450 SX Wins"],
-    "20+ 450 SX Wins": ["450 SX Win"],
-    "250 SX East/West Showdown Win": ["250 SX Win"],
-    "250 SX Win": ["250 SX East/West Showdown Win"]
-}
 
 def is_strongly_playable(grid_data: Dict[Tuple[str, str], Set[str]]) -> bool:
     """Validates if a grid is playable based on unique rider distribution."""
@@ -133,114 +102,14 @@ def is_strongly_playable(grid_data: Dict[Tuple[str, str], Set[str]]) -> bool:
     return True
 
 def fetch_riders_for_criterion(criterion: str, conn) -> Set[str]:
-    """Fetch riders from Azure SQL that match a given criterion."""
-    query = ""
+    query = criteria_queries.get(criterion)
+    if not query:
+        return set()
 
-    if criterion == "450 SX Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1"
-    elif criterion == "250 SX Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1"
-    elif criterion == "250 SX East/West Showdown Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.CoastID = 3 AND m.Result = 1"
-    elif criterion == "450 SX Triple Crown Overall Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TC1 IS NOT NULL"
-    elif criterion == "250 SX Triple Crown Overall Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1 AND m.TC1 IS NOT NULL"
-    elif criterion == "450 SX Triple Crown Main Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)"
-    elif criterion == "250 SX Triple Crown Main Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)"    
-    elif criterion == "250 SX LCQ Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 2 AND l.Result = 1"
-    elif criterion == "450 SX LCQ Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 1 AND l.Result = 1"
-    elif criterion == "5+ 450 SX Wins in One Season":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 1 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName"
-    elif criterion == "5+ 250 SX Wins in One Season":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 2 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName"
-    elif criterion == "1+ 250 SX Pole Positions":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 2 AND q.Result = 1"
-    elif criterion == "1+ 450 SX Pole Positions":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 1 AND q.Result = 1"
-    elif criterion == "10+ 450 SX Wins":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result = 1 THEN 1 END) >= 10"
-    elif criterion == "20+ 450 SX Wins":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result = 1 THEN 1 END) >= 20"
-    elif criterion == "450 MX Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1"
-    elif criterion == "250 MX Win":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1"
-    elif criterion == "1+ 450 SX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.ClassID = 1"
-    elif criterion == "1+ 250 SX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.ClassID = 2"
-    elif criterion == "1+ 450 MX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 1"
-    elif criterion == "1+ 250 MX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 2"
-    elif criterion == "450 MX Top 20 Moto Finish (1985-Present)":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mo ON r.RiderID = mo.riderID WHERE mo.ClassID = 1 AND (mo.moto1 <= 20 OR mo.moto2 <= 20)"
-    elif criterion == "250 MX Top 20 Moto Finish (1998-Present)":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mo ON r.RiderID = mo.riderID WHERE mo.ClassID = 2 AND (mo.moto1 <= 20 OR mo.moto2 <= 20)"
-    elif criterion == "2+ 450 SX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.ClassID = 1 GROUP BY r.FullName HAVING COUNT(c.Year) >= 2"
-    elif criterion == "2+ 250 SX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.ClassID = 2 GROUP BY r.FullName HAVING COUNT(c.Year) >= 2"
-    elif criterion == "2+ 450 MX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 1 GROUP BY r.FullName HAVING COUNT(c.Year) >= 2"
-    elif criterion == "2+ 250 MX Championships":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 2 AND c.ClassID = 2 GROUP BY r.FullName HAVING COUNT(c.Year) >= 2"
-    elif criterion == "10+ 450 SX Podiums":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result <= 3 THEN 1 END) >= 10"
-    elif criterion == "10+ 250 SX Podiums":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result <= 3 THEN 1 END) >= 10"
-    elif criterion == "10+ 450 MX Podiums":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result <= 3 THEN 1 END) >= 10"
-    elif criterion == "10+ 250 MX Podiums":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 GROUP BY r.FullName HAVING COUNT(CASE WHEN m.Result <= 3 THEN 1 END) >= 10"
-    elif criterion == "France SX Winner":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.Result = 1 AND r.Country = 'France'"
-    elif criterion == "Australia SX Winner":
-        query = "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.Result = 1 AND r.Country = 'Australia'"
-    elif criterion == "SX Multi-Class Winner":
-        query = "SELECT FullName FROM (SELECT r.FullName, COUNT(DISTINCT m.ClassID) AS class_wins FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.Result = 1 GROUP BY r.FullName) AS subquery WHERE class_wins > 1"
-    elif criterion in ["KTM", "HUS", "YAM", "HON", "SUZ", "KAW", "GAS"]:
-        query = f"SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID WHERE rb.Brand = '{criterion}'"
-    elif criterion in ["Australia", "France", "United States"]:
-        query = f"SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = '{criterion}'"
-    elif criterion in ["Raced in the 1970s", "Raced in the 1980s", "Raced in the 1990s", "Raced in the 2000s", "Raced in the 2010s", "Raced in the 2020s"]:
-        decade_start = int(criterion.split()[-1][:4])
-        decade_end = decade_start + 9
-    
-        query = f"""
-        SELECT DISTINCT r.FullName
-        FROM Rider_List r
-        JOIN SX_MAINS sm ON r.RiderID = sm.RiderID
-        JOIN Race_Table rt ON sm.RaceID = rt.RaceID
-        WHERE rt.Year BETWEEN {decade_start} AND {decade_end}
-        
-        UNION
-        
-        SELECT DISTINCT r.FullName
-        FROM Rider_List r
-        JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID
-        JOIN Race_Table rt ON mx.RaceID = rt.RaceID
-        WHERE rt.Year BETWEEN {decade_start} AND {decade_end}
-    """
-    elif criterion == "Anaheim 1 450 SX Winner":
-        query = f"SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID JOIN Race_Table rt ON m.RaceID = rt.RaceID WHERE m.TrackID = 96 AND rt.Round = 1 AND m.ClassID = 1 AND m.Result = 1"
-    elif criterion == "Daytona 450 SX Winner":
-        query = f"SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 88"
-    elif criterion == "Red Bud 450 MX Winner":
-        query = f"SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 3"
-        
-    if query:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        riders = {row[0] for row in cursor.fetchall()}
-        return riders
+    cursor = conn.cursor()
+    cursor.execute(query)
+    return {row[0] for row in cursor.fetchall()}
 
-    return set()
 
 
 def generate_valid_grid(excluded_criteria=None):
@@ -1073,3 +942,21 @@ def populate_grid_pool(max_to_generate: int = 1000):
                     break
 
     return {"message": f"✅ Inserted {inserted_count} valid grids into GridPool."}
+
+@app.post("/reload-config")
+def reload_config():
+    global criteria_pool, invalid_pairings, criteria_queries
+
+    try:
+        with open("criteria.json") as f:
+            config = json.load(f)
+            criteria_pool = config["criteria_pool"]
+            invalid_pairings = config["invalid_pairings"]
+
+        with open("criteria_queries.json") as f:
+            criteria_queries = json.load(f)
+
+        return {"message": "✅ Config reloaded successfully."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reload config: {str(e)}")

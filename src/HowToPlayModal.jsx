@@ -53,8 +53,8 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Raced at least one 250/450 or 500 MX event since 1972*.</p>
         <p>Raced at least one 125/250 MX event since 1974*.</p>
         <p>Raced at least one 250 or 450 MX Consolation race since 2009.</p>
-        <p>Rode in qualifying in at least one MX event since 2009, 250 or 450.</p>
-        <p>Rode in qualifying in at least one SX event since 2003, 125/250 or 250/450.</p>
+        <p>Rode in timed qualifying in at least one MX event since 2009, 250 or 450.</p>
+        <p>Rode in timed qualifying in at least one SX event since 2007, 250 or 450.</p>
         <p>Raced at least one 125/250 SX Heat Race since 2003.</p>
         <p>Raced at least one 250/450 SX Heat Race since 2003.</p>
         <p>Raced at least one 125/250 SX LCQ since 2003.</p>
