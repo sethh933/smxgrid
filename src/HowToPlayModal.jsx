@@ -62,6 +62,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are present in accessible historical records in that time frame.</p>
         <p>Email feedback@smxmuse.com or send me a DM on Instagram or X if you would like to provide any feedback about the game.</p>
     
+    
       </div>
     </div>
   );
