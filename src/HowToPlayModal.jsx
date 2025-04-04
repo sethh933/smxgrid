@@ -38,8 +38,8 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>You have nine guesses to complete the grid.</p>
         <p>Riders cannot be used twice.</p>
         <p>A new grid releases at 4:00am ET every day. </p>
-        <p>Total Games Played is the count of all games played that day.</p>
-        <p>Average Score is the average of correct answers per game across all games played that day.</p>
+        <p>Total Games Played is the count of all games completed that day.</p>
+        <p>Average Score is the average of correct answers per game across all games completed that day.</p>
         <p>Rarity score is the sum of your guess percentages. Any cell unanswered upon the game's completion adds 100 to the score.</p> 
         <p>The percentage displayed in each cell after a correct guess shows how often that rider has been selected for that cell.</p>
         <p>If a row/column is a manufacturer, you can select a rider that has ridden for that manufacturer at any point in their career, 250 or 450 class.</p>
