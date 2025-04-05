@@ -132,9 +132,11 @@ def generate_valid_grid(excluded_criteria=None):
 
             # ✅ Ensure valid row-column pairs
             invalid_found = any(
-                row in invalid_pairings and col in invalid_pairings[row] 
+                (row in invalid_pairings and col in invalid_pairings[row]) or
+                (col in invalid_pairings and row in invalid_pairings[col])
                 for row in rows for col in cols
             )
+
             
             if invalid_found:
                 print("⚠️ Invalid row-column pairing detected. Retrying...")
@@ -248,9 +250,6 @@ def generate_and_archive_switch():
             if not valid_grid_found:
                 raise HTTPException(status_code=500, detail="No valid, playable grids found in GridPool.")
 
-            # ✅ Start transaction
-            cursor.execute("BEGIN TRANSACTION")
-
             # ✅ Archive old active grid
             cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
 
@@ -264,7 +263,8 @@ def generate_and_archive_switch():
             cursor.execute("UPDATE dbo.GridPool SET IsUsed = 1 WHERE GridPoolID = ?", grid_id)
 
             # ✅ Commit transaction
-            cursor.execute("COMMIT TRANSACTION")
+            conn.commit()
+
 
         return {
             "message": "✅ New grid generated and old grid archived successfully.",
@@ -922,8 +922,13 @@ def populate_grid_pool(max_to_generate: int = 1000):
             rows, cols = combo[:3], combo[3:]
 
             # Skip invalid combinations
-            if any(row in invalid_pairings and col in invalid_pairings[row] for row in rows for col in cols):
+            if any(
+                (row in invalid_pairings and col in invalid_pairings[row]) or
+                (col in invalid_pairings and row in invalid_pairings[col])
+                for row in rows for col in cols
+            ):
                 continue
+
 
             grid_data = {
                 (row, col): fetch_riders_for_criterion(row, conn) & fetch_riders_for_criterion(col, conn)

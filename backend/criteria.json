@@ -56,60 +56,46 @@
     "250 SX Triple Crown Overall Win",
     "250 SX East/West Showdown Win"
   ],
-  "invalid_pairings": {
-    "450 SX Win": [
-      "Daytona 450 SX Winner",
-      "1+ 450 SX Championships",
-      "Anaheim 1 450 SX Winner",
-      "20+ 450 SX Wins"
-    ],
-    "Daytona 450 SX Winner": [
-      "450 SX Win"
-    ],
-    "1+ 450 SX Championships": [
-      "450 SX Win"
-    ],
-    "1+ 250 SX Championships": [
-      "250 SX Win"
-    ],
-    "250 SX Win": [
-      "1+ 250 SX Championships",
-      "250 SX East/West Showdown Win"
-    ],
-    "1+ 450 MX Championships": [
-      "450 MX Win"
-    ],
-    "450 MX Win": [
-      "1+ 450 MX Championships",
-      "Red Bud 450 MX Winner"
-    ],
-    "1+ 250 MX Championships": [
-      "250 MX Win"
-    ],
-    "250 MX Win": [
-      "1+ 250 MX Championships"
-    ],
-    "Anaheim 1 450 SX Winner": [
-      "450 SX Win"
-    ],
-    "Raced in the 1990s": [
-      "Raced in the 2020s"
-    ],
-    "Raced in the 2020s": [
-      "Raced in the 1990s"
-    ],
-    "Red Bud 450 MX Winner": [
-      "450 MX Win"
-    ],
-    "10+ 450 SX Podiums": [
-      "20+ 450 SX Wins"
-    ],
-    "20+ 450 SX Wins": [
-      "10+ 450 SX Podiums",
-      "450 SX Win"
-    ],
-    "250 SX East/West Showdown Win": [
-      "250 SX Win"
-    ]
-  }
+
+"invalid_pairings": {
+  "450 SX Win": [
+    "Daytona 450 SX Winner",
+    "1+ 450 SX Championships",
+    "Anaheim 1 450 SX Winner",
+    "20+ 450 SX Wins",
+    "2+ 450 SX Championships"
+  ],
+  "1+ 250 SX Championships": [
+    "250 SX Win",
+    "2+ 250 SX Championships"
+  ],
+  "250 SX Win": [
+    "250 SX East/West Showdown Win",
+    "2+ 250 SX Championships"
+  ],
+  "1+ 450 MX Championships": [
+    "450 MX Win",
+    "2+ 450 MX Championships"
+  ],
+  "1+ 250 MX Championships": [
+    "250 MX Win",
+    "2+ 250 MX Championships"
+  ],
+  "450 MX Win": [
+    "Red Bud 450 MX Winner",
+    "2+ 450 MX Championships"
+  ],
+  "250 MX Win": [
+    "2+ 250 MX Championships"
+  ],
+  "Raced in the 1990s": [
+    "Raced in the 2020s"
+  ],
+  "10+ 450 SX Podiums": [
+    "20+ 450 SX Wins"
+  ]
+  
+}
+
+
 }
