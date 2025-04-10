@@ -180,7 +180,7 @@ def generate_and_archive_switch():
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # Fetch previously used layout combos
+            # ✅ Fetch all previously used layouts (row/column positions)
             cursor.execute("""
                 SELECT Row1, Row2, Row3, Column1, Column2, Column3 
                 FROM dbo.DailyGrids
@@ -190,34 +190,46 @@ def generate_and_archive_switch():
                 for row in cursor.fetchall()
             }
 
-            # Fetch active grid
+            # ✅ Fetch active grid to avoid overlap of criteria
             cursor.execute("""
                 SELECT Row1, Row2, Row3, Column1, Column2, Column3 
                 FROM dbo.DailyGrids 
                 WHERE Status = 'Active'
             """)
             active_grid = cursor.fetchone()
-            active_criteria_set = set(active_grid) if active_grid else set()
 
-            # Fetch manually selected override GridPoolID
-            cursor.execute("SELECT NextGridPoolID FROM dbo.GridPoolSettings")
-            override_row = cursor.fetchone()
-            override_id = override_row[0] if override_row else None
+            active_criteria_set = set()
+            if active_grid:
+                active_criteria_set = {
+                    active_grid[0], active_grid[1], active_grid[2],
+                    active_grid[3], active_grid[4], active_grid[5]
+                }
 
-            selected = None
-            grid_id = None
+            # ✅ Fetch all unused and non-invalid grids from GridPool
+            cursor.execute("""
+                SELECT TOP 1000 GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
+                FROM dbo.GridPool
+                WHERE IsUsed = 0 AND Invalid = 0
+                ORDER BY NEWID()
+            """)
 
-            # Function to validate grid
-            def validate_and_select_grid(grid):
+            available_grids = cursor.fetchall()
+
+            valid_grid_found = False
+
+            for grid in available_grids:
                 grid_position_tuple = (grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3)
                 grid_criteria = {grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3}
 
+                # Skip if layout was used before
                 if grid_position_tuple in used_position_combos:
-                    return False
-                if not active_criteria_set.isdisjoint(grid_criteria):
-                    return False
+                    continue
 
-                # Build grid data for playability check
+                # Skip if any overlap with active criteria
+                if not active_criteria_set.isdisjoint(grid_criteria):
+                    continue
+
+                # ✅ Rebuild grid using live data
                 rows = [grid.Row1, grid.Row2, grid.Row3]
                 cols = [grid.Column1, grid.Column2, grid.Column3]
                 grid_data = {
@@ -225,46 +237,18 @@ def generate_and_archive_switch():
                     for row in rows for col in cols
                 }
 
+                # ✅ Check if it's still playable
                 if is_strongly_playable(grid_data):
-                    return (rows, cols)
+                    selected = grid
+                    grid_id = selected.GridPoolID
+                    valid_grid_found = True
+                    break
                 else:
+                    # ❌ Mark as invalid
                     cursor.execute("UPDATE dbo.GridPool SET Invalid = 1 WHERE GridPoolID = ?", grid.GridPoolID)
-                    return False
 
-            # ✅ Try manual override first
-            if override_id:
-                cursor.execute("""
-                    SELECT GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3 
-                    FROM dbo.GridPool 
-                    WHERE GridPoolID = ? AND IsUsed = 0 AND Invalid = 0
-                """, override_id)
-                override_grid = cursor.fetchone()
-
-                if override_grid:
-                    result = validate_and_select_grid(override_grid)
-                    if result:
-                        selected = override_grid
-                        rows, cols = result
-                        grid_id = override_grid.GridPoolID
-
-            # ✅ Fallback to random if override failed or not set
-            if not selected:
-                cursor.execute("""
-                    SELECT TOP 1000 GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
-                    FROM dbo.GridPool
-                    WHERE IsUsed = 0 AND Invalid = 0
-                    ORDER BY NEWID()
-                """)
-                for grid in cursor.fetchall():
-                    result = validate_and_select_grid(grid)
-                    if result:
-                        selected = grid
-                        rows, cols = result
-                        grid_id = grid.GridPoolID
-                        break
-
-            if not selected:
-                raise HTTPException(status_code=500, detail="No valid, playable grid found.")
+            if not valid_grid_found:
+                raise HTTPException(status_code=500, detail="No valid, playable grids found in GridPool.")
 
             # ✅ Archive old active grid
             cursor.execute("UPDATE dbo.DailyGrids SET Status = 'Archived' WHERE Status = 'Active'")
@@ -278,13 +262,12 @@ def generate_and_archive_switch():
             # ✅ Mark as used
             cursor.execute("UPDATE dbo.GridPool SET IsUsed = 1 WHERE GridPoolID = ?", grid_id)
 
-            # ✅ Reset manual override
-            cursor.execute("UPDATE dbo.GridPoolSettings SET NextGridPoolID = NULL")
-
+            # ✅ Commit transaction
             conn.commit()
 
+
         return {
-            "message": f"✅ New grid (GridPoolID {grid_id}) generated and old grid archived.",
+            "message": "✅ New grid generated and old grid archived successfully.",
             "new_rows": rows,
             "new_columns": cols
         }
@@ -296,7 +279,6 @@ def generate_and_archive_switch():
             pass
         logging.error(f"Grid generation or archive failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Grid generation failed: {str(e)}")
-
 
 
 
