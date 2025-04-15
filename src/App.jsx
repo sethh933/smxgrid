@@ -80,28 +80,31 @@ useEffect(() => {
   const initializeGrid = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/grid?guest_id=${guestId}`);
-      //console.log("Fetched Grid Data:", response.data);
       setRows(response.data.rows);
       setColumns(response.data.columns);
+      setGridId(response.data.grid_id);
   
       if (response.data.grid_data) {
         const formattedGrid = response.data.rows.map(row =>
           response.data.columns.map(col => response.data.grid_data[`${row},${col}`] || "")
         );
         setGrid(formattedGrid);
-      } else {
-        console.error("Grid data is empty:", response.data);
       }
   
-      setGuessesLeft(response.data.remaining_attempts);
-      setGridId(response.data.grid_id); // ✅ Store the grid ID for the daily game
-
-      setIsLoading(false); // ✅ Everything is loaded, remove loading state
+      // ✅ Load from localStorage first
+      const savedGame = JSON.parse(localStorage.getItem(`game_state_${response.data.grid_id}`));
+      if (savedGame && typeof savedGame.guessesLeft === "number") {
+        setGuessesLeft(savedGame.guessesLeft);
+      } else {
+        setGuessesLeft(response.data.remaining_attempts); // fallback to backend
+      }
+  
+      setIsLoading(false);
     } catch (error) {
       console.error("Error initializing grid:", error);
-      setIsLoading(false); // ✅ Remove loading state even on error
+      setIsLoading(false);
     }
-  };
+  };  
 
   initializeGrid();
 }, [guestId]);  // ✅ Runs when guestId is available
