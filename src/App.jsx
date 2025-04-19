@@ -503,9 +503,28 @@ const handleGiveUp = async () => {
   }
 };
 
-  
-  
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "hidden" && gridId) {
+      const gameState = {
+        grid,
+        guessesLeft,
+        incorrectGuesses,
+        gameOver,
+      };
+      localStorage.setItem(`game_state_${gridId}`, JSON.stringify(gameState));
 
+      // Also flush used guesses for accuracy
+      localStorage.setItem(`used_guesses_${gridId}`, JSON.stringify([...correctGuesses]));
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+}, [gridId, grid, guessesLeft, incorrectGuesses, correctGuesses, gameOver]);
+ 
 
 return (
   <>
