@@ -15,7 +15,7 @@ function App() {
   const [grid, setGrid] = useState(Array(3).fill(Array(3).fill("")));
   const [rows, setRows] = useState([]);
   const [columns, setColumns] = useState([]);
-  const [guessesLeft, setGuessesLeft] = useState(9);
+  const [guessesLeft, setGuessesLeft] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
   const [riderName, setRiderName] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -93,11 +93,12 @@ useEffect(() => {
   
       // ✅ Load from localStorage first
       const savedGame = JSON.parse(localStorage.getItem(`game_state_${response.data.grid_id}`));
-      if (savedGame && typeof savedGame.guessesLeft === "number") {
-        setGuessesLeft(savedGame.guessesLeft);
-      } else {
-        setGuessesLeft(response.data.remaining_attempts); // fallback to backend
-      }
+     // ✅ Derive guessesLeft from saved guesses
+const used = JSON.parse(localStorage.getItem(`used_guesses_${response.data.grid_id}`)) || [];
+const incorrect = JSON.parse(localStorage.getItem(`incorrect_guesses_${response.data.grid_id}`)) || {};
+const totalIncorrect = Object.values(incorrect).reduce((acc, cell) => acc + cell.length, 0);
+setGuessesLeft(9 - used.length - totalIncorrect);
+
   
       setIsLoading(false);
     } catch (error) {
@@ -205,13 +206,17 @@ useEffect(() => {
   let loadedGrid = Array(3).fill(Array(3).fill(""));
 
   if (savedGameState) {
-    //console.log("Loading saved game state...");
     const parsedState = JSON.parse(savedGameState);
     loadedGrid = parsedState.grid || loadedGrid;
     setGrid(loadedGrid);
-    setGuessesLeft(parsedState.guessesLeft ?? 9);
     setGameOver(parsedState.gameOver ?? false);
   }
+  
+  // ✅ Derive guessesLeft after loading saved guesses
+  const used = savedUsedGuesses ? JSON.parse(savedUsedGuesses) : [];
+  const incorrect = savedIncorrectGuesses ? JSON.parse(savedIncorrectGuesses) : {};
+  const totalIncorrect = Object.values(incorrect).reduce((acc, cell) => acc + cell.length, 0);
+  setGuessesLeft(9 - used.length - totalIncorrect);  
 
   if (savedIncorrectGuesses) {
     setIncorrectGuesses(JSON.parse(savedIncorrectGuesses));
@@ -405,7 +410,6 @@ const handleSubmit = async (selectedRider = riderName) => {
         // ✅ Also save updated game state with new guessesLeft
         const gameState = {
           grid,
-          guessesLeft: response.data.remaining_attempts,
           incorrectGuesses: updatedIncorrectGuesses,
           gameOver: response.data.remaining_attempts === 0,
         };
@@ -443,7 +447,6 @@ const handleSubmit = async (selectedRider = riderName) => {
       // ✅ Save updated game state to localStorage
       const gameState = {
         grid: newGrid,
-        guessesLeft: response.data.remaining_attempts,
         incorrectGuesses,
         gameOver: response.data.remaining_attempts === 0,
       };
@@ -493,7 +496,6 @@ const handleGiveUp = async () => {
     // ✅ Save updated game state
     localStorage.setItem(`game_state_${gridId}`, JSON.stringify({
       grid,
-      guessesLeft: 0,
       incorrectGuesses,
       gameOver: true
     }));
@@ -508,7 +510,6 @@ useEffect(() => {
     if (document.visibilityState === "hidden" && gridId) {
       const gameState = {
         grid,
-        guessesLeft,
         incorrectGuesses,
         gameOver,
       };
@@ -523,7 +524,7 @@ useEffect(() => {
   return () => {
     document.removeEventListener("visibilitychange", handleVisibilityChange);
   };
-}, [gridId, grid, guessesLeft, incorrectGuesses, correctGuesses, gameOver]);
+}, [gridId, grid, incorrectGuesses, correctGuesses, gameOver]);
  
 
 return (
@@ -601,7 +602,7 @@ return (
         {/* ✅ Align Side Panel to the Third Row (HON) */}
         <div className="side-panel-container">
             <div className="side-panel">
-                <p className="guess-counter">{guessesLeft}</p>
+            <p className="guess-counter">{guessesLeft ?? 9}</p>
                 <p className="guess-counter-label">Guesses Left</p>
                 {gameOver ? (
                     <button className="summary-button" onClick={() => setIsSummaryOpen(true)}>View Summary</button>
