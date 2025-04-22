@@ -539,60 +539,56 @@ body.modal-open, html.modal-open {
   }
 }
 
-@media screen and (max-width: 1400px) {
+/* 💻 Responsive Grid Scaling for Laptops & High-DPI Screens */
+@media screen and (min-width: 601px) {
   .grid-cell,
   .header-cell,
   .empty-cell {
-    width: 120px !important;
-    height: 120px !important;
-    font-size: 12px !important;
+    width: clamp(100px, 11vw, 180px);
+    height: clamp(100px, 11vw, 180px);
+    font-size: clamp(10px, 1vw, 16px);
   }
 
   .rider-name-banner {
-    font-size: 10px !important;
+    font-size: clamp(9px, 1vw, 14px);
     padding: 3px 0;
   }
 
   .side-panel-container {
-    width: 120px !important;
-    height: 120px !important;
+    width: clamp(100px, 11vw, 180px);
+    height: clamp(100px, 11vw, 180px);
   }
 
   .guess-counter {
-    font-size: 24px !important;
+    font-size: clamp(20px, 2vw, 32px);
   }
 
   .guess-counter-label {
-    font-size: 12px !important;
+    font-size: clamp(10px, 1.2vw, 14px);
   }
 
   .input-container {
-    top: 100px !important;
-    left: 50% !important;
-    width: 300px !important;
+    top: 100px;
+    left: 50%;
+    width: clamp(250px, 40vw, 400px);
     transform: translateX(-50%);
   }
 
   .input-box {
-    font-size: 14px !important;
-    width: 100% !important;
-  }
-
-  .column-headers,
-  .grid-row {
-    gap: 0;
-  }
-
-  .banner-left {
-    margin-left: 60px;
-  }
-
-  .social-icons {
-    margin-right: 150px;
+    font-size: clamp(12px, 1vw, 16px);
+    width: 100%;
   }
 
   .top-banner {
-    font-size: 20px;
+    font-size: clamp(18px, 2vw, 22px);
+  }
+
+  .banner-left {
+    margin-left: clamp(40px, 5vw, 95px);
+  }
+
+  .social-icons {
+    margin-right: clamp(80px, 7vw, 275px);
   }
 
   .grid-wrapper {
