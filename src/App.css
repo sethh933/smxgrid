@@ -539,76 +539,63 @@ body.modal-open, html.modal-open {
   }
 }
 
-  @media (min-width: 601px) and (max-width: 1400px) {
-    .grid-cell,
-    .header-cell,
-    .empty-cell {
-      width: 120px !important;
-      height: 120px !important;
-      font-size: 12px !important;
-    }    
-  
-    .rider-name-banner {
-      font-size: 10px;
-      padding: 3px 0;
-    }
-  
-    .side-panel-container {
-      width: 120px;
-      height: 120px;
-    }
-  
-    .guess-counter {
-      font-size: 24px;
-    }
-  
-    .guess-counter-label {
-      font-size: 12px;
-    }
-  
-    .input-container {
-      top: 100px;
-      left: 50%;
-      width: 300px;
-      transform: translateX(-50%);
-    }
-  
-    .input-box {
-      font-size: 14px;
-      width: 100%;
-    }
-  
-    .column-headers,
-    .grid-row {
-      gap: 0;
-    }
-  
-    .banner-left {
-      margin-left: 60px;
-    }
-  
-    .social-icons {
-      margin-right: 150px;
-    }
-  
-    .top-banner {
-      font-size: 20px;
-    }
-  
-    .grid-wrapper {
-      margin-top: 40px;
-    }
+@media (min-width: 601px) and (max-width: 3000px) {
+  .grid-cell,
+  .header-cell,
+  .empty-cell {
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 12px !important;
   }
 
+  .rider-name-banner {
+    font-size: 10px !important;
+    padding: 3px 0;
+  }
 
+  .side-panel-container {
+    width: 120px !important;
+    height: 120px !important;
+  }
 
+  .guess-counter {
+    font-size: 24px !important;
+  }
 
+  .guess-counter-label {
+    font-size: 12px !important;
+  }
 
+  .input-container {
+    top: 100px !important;
+    left: 50% !important;
+    width: 300px !important;
+    transform: translateX(-50%);
+  }
 
+  .input-box {
+    font-size: 14px !important;
+    width: 100% !important;
+  }
 
+  .column-headers,
+  .grid-row {
+    gap: 0;
+  }
 
+  .banner-left {
+    margin-left: 60px;
+  }
 
+  .social-icons {
+    margin-right: 150px;
+  }
 
+  .top-banner {
+    font-size: 20px;
+  }
 
-
-
+  .grid-wrapper {
+    margin-top: 40px;
+  }
+}
