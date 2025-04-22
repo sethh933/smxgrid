@@ -539,23 +539,23 @@ body.modal-open, html.modal-open {
   }
 }
 
-@media (min-width: 601px) and (max-width: 1400px) {
+@media screen and (max-width: 1400px) {
   .grid-cell,
   .header-cell,
   .empty-cell {
-    width: 150px !important;
-    height: 150px !important;
-    font-size: 14px !important;
+    width: 120px !important;
+    height: 120px !important;
+    font-size: 12px !important;
   }
 
   .rider-name-banner {
-    font-size: 12px !important;
+    font-size: 10px !important;
     padding: 3px 0;
   }
 
   .side-panel-container {
-    width: 150px !important;
-    height: 150px !important;
+    width: 120px !important;
+    height: 120px !important;
   }
 
   .guess-counter {
@@ -563,7 +563,7 @@ body.modal-open, html.modal-open {
   }
 
   .guess-counter-label {
-    font-size: 14px !important;
+    font-size: 12px !important;
   }
 
   .input-container {
