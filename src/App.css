@@ -540,7 +540,7 @@ body.modal-open, html.modal-open {
 }
 
 /* 💻 Responsive Grid Scaling for Laptops & High-DPI Screens */
-@media screen and (min-width: 601px) {
+@media screen and (min-width: 601px) and (max-width: 1600px) {
   .grid-cell,
   .header-cell,
   .empty-cell {
@@ -593,5 +593,52 @@ body.modal-open, html.modal-open {
 
   .grid-wrapper {
     margin-top: 40px;
+  }
+}
+
+@media screen and (min-width: 1601px) {
+  .grid-cell,
+  .header-cell,
+  .empty-cell,
+  .side-panel-container {
+    width: 200px;
+    height: 200px;
+    font-size: 18px;
+  }
+
+  .rider-name-banner {
+    font-size: 14px;
+    padding: 5px 0;
+  }
+
+  .guess-counter {
+    font-size: 32px;
+  }
+
+  .guess-counter-label {
+    font-size: 14px;
+  }
+
+  .input-container {
+    top: 70px;
+    left: 49%;
+    width: 250px;
+    transform: translateX(-50%);
+  }
+
+  .input-box {
+    font-size: 16px;
+  }
+
+  .top-banner {
+    font-size: 22px;
+  }
+
+  .banner-left {
+    margin-left: 95px;
+  }
+
+  .social-icons {
+    margin-right: 275px;
   }
 }
