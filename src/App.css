@@ -537,16 +537,69 @@ body.modal-open, html.modal-open {
   .empty-cell {
     border: none !important;
   }
+}
 
-  @media (min-width: 601px) {
-    .banner-left {
-      margin-left: 95px;
+  @media (min-width: 601px) and (max-width: 1200px) {
+    .grid-cell,
+    .header-cell,
+    .empty-cell {
+      width: 120px;
+      height: 120px;
+      font-size: 12px;
     }
+  
+    .rider-name-banner {
+      font-size: 10px;
+      padding: 3px 0;
+    }
+  
+    .side-panel-container {
+      width: 120px;
+      height: 120px;
+    }
+  
+    .guess-counter {
+      font-size: 24px;
+    }
+  
+    .guess-counter-label {
+      font-size: 12px;
+    }
+  
+    .input-container {
+      top: 100px;
+      left: 50%;
+      width: 300px;
+      transform: translateX(-50%);
+    }
+  
+    .input-box {
+      font-size: 14px;
+      width: 100%;
+    }
+  
+    .column-headers,
+    .grid-row {
+      gap: 0;
+    }
+  
+    .banner-left {
+      margin-left: 60px;
+    }
+  
     .social-icons {
-      margin-right: 275px;
+      margin-right: 150px;
+    }
+  
+    .top-banner {
+      font-size: 20px;
+    }
+  
+    .grid-wrapper {
+      margin-top: 40px;
     }
   }
-}
+
 
 
 
