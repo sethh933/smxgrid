@@ -29,11 +29,52 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
   const [submittingGuess, setSubmittingGuess] = useState(false);
+  
+  const categoryFlags = {
+    "United States": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
+    "France": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
+    "Australia": "https://upload.wikimedia.org/wikipedia/en/b/b9/Flag_of_Australia.svg",
+    "United Kingdom": "https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg",
+    "Japan": "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",
+    "Spain": "https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg",
+    "Canada": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg",
+    "South Africa": "https://upload.wikimedia.org/wikipedia/commons/a/af/Flag_of_South_Africa.svg",
+    "Brazil": "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg"
+  };
 
-
-
-
-
+  const categoryLogos = {
+    "KTM": "https://assets.liveracemedia.com/manufacturers/primary/ktm.png",
+    "HON": "https://assets.liveracemedia.com/manufacturers/primary/honda.png",
+    "HUS": "https://assets.liveracemedia.com/manufacturers/primary/husqvarna.png",
+    "YAM": "https://assets.liveracemedia.com/manufacturers/primary/yamaha.png",
+    "KAW": "https://assets.liveracemedia.com/manufacturers/primary/kawasaki.png",
+    "GAS": "https://assets.liveracemedia.com/manufacturers/primary/gasgas.png",
+    "SUZ": "https://assets.liveracemedia.com/manufacturers/primary/suzuki.png"
+  };
+  
+  const categoryDisplayNames = {
+    // 🌍 Countries
+    "United States": "United States nationality",
+    "France": "France nationality",
+    "Australia": "Australia nationality",
+    "United Kingdom": "United Kingdom nationality",
+    "Japan": "Japan nationality",
+    "Spain": "Spain nationality",
+    "Canada": "Canada nationality",
+    "South Africa": "South Africa nationality",
+    "Brazil": "Brazil nationality",
+  
+    // 🏍 Brands
+    "KTM": "KTM",
+    "HON": "Honda",
+    "HUS": "Husqvarna",
+    "YAM": "Yamaha",
+    "KAW": "Kawasaki",
+    "GAS": "GasGas",
+    "SUZ": "Suzuki"
+  };
+  
+  
 
   // ✅ Close the input container when clicking anywhere else
 useEffect(() => {
@@ -564,17 +605,34 @@ return (
     <div className="game-layout">
         {/* ✅ Grid Section */}
         <div className="grid-wrapper">
-            <div className="column-headers">
-                <div className="empty-cell"></div>
-                {columns.map((col, index) => (
-                    <div key={index} className="header-cell">{col}</div>
-                ))}
-            </div>
+        <div className="column-headers">
+  <div className="empty-cell"></div>
+  {columns.map((col, index) => (
+    <div key={index} className="header-cell">
+      {categoryFlags[col] ? (
+        <img src={categoryFlags[col]} alt={col} title={categoryDisplayNames[col] || col} className="header-flag" />
+      ) : categoryLogos[col] ? (
+        <img src={categoryLogos[col]} alt={col} title={categoryDisplayNames[col] || col} className="header-logo" />
+      ) : (
+        col
+      )}
+    </div>
+  ))}
+</div>
 
             <div className="grid-body">
                 {rows.map((row, rowIndex) => (
                     <div key={rowIndex} className="grid-row">
-                        <div className="header-cell">{row}</div>
+                        <div className="header-cell">
+  {categoryFlags[row] ? (
+    <img src={categoryFlags[row]} alt={row} title={categoryDisplayNames[row] || row} className="header-flag" />
+  ) : categoryLogos[row] ? (
+    <img src={categoryLogos[row]} alt={row} title={categoryDisplayNames[row] || row} className="header-logo" />
+  ) : (
+    row
+  )}
+</div>
+
                         {grid[rowIndex].map((cell, colIndex) => (
                             <div
                                 key={`${rowIndex}-${colIndex}`}
