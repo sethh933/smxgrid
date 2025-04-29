@@ -43,6 +43,15 @@
   "Australia": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Australia'",
   "France": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'France'",
   "United States": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'United States'",
+  "Canada": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Canada'",
+  "Spain": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Spain'",
+  "Japan": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Japan'",
+  "Brazil": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Brazil'",
+  "United Kingdom": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('England', 'Wales', 'Northern Ireland', 'Scotland', 'United Kingdom')",
+  "European Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Finland', 'Italy', 'Netherlands', 'Germany', 'England', 'Lithuania', 'Switzerland', 'United Kingdom', 'Sweden', 'Ukraine', 'Czechia', 'Russia', 'Ireland', 'Latvia', 'France', 'Belgium', 'Spain', 'Denmark')",
+  "South American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Ecuador', 'Bolivia', 'Brazil', 'Argentina', 'Colombia', 'Chile', 'Venezuela')",
+  "Central American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Guatemala', 'Honduras', 'Costa Rica', 'Dominican Republic')",
+  "Asian Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('South Korea', 'Philippines', 'Japan', 'Mongolia')",
   "Raced in the 1970s": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1970 AND 1979 UNION SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID JOIN Race_Table rt ON mx.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1970 AND 1979",
   "Raced in the 1980s": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1980 AND 1989 UNION SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID JOIN Race_Table rt ON mx.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1980 AND 1989",
   "Raced in the 1990s": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1990 AND 1999 UNION SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID JOIN Race_Table rt ON mx.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1990 AND 1999",
@@ -51,5 +60,10 @@
   "Raced in the 2020s": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE rt.Year BETWEEN 2020 AND 2029 UNION SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID JOIN Race_Table rt ON mx.RaceID = rt.RaceID WHERE rt.Year BETWEEN 2020 AND 2029",
   "Anaheim 1 450 SX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID JOIN Race_Table rt ON m.RaceID = rt.RaceID WHERE m.TrackID = 96 AND rt.Round = 1 AND m.ClassID = 1 AND m.Result = 1",
   "Daytona 450 SX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 88",
-  "Red Bud 450 MX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 3"
+  "Red Bud 450 MX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 3",
+  "250 MX 1+ 1-1 Overall Wins (1998-Present)": "select distinct r.fullname from rider_list r JOIN MX_OVERALLS m on r.riderid = m.riderid where m.classid = 2 and Moto1 = 1 and moto2 = 1",
+  "450 MX 1+ 1-1 Overall Wins (1985-Present)": "select distinct r.fullname from rider_list r JOIN MX_OVERALLS m on r.riderid = m.riderid where m.classid = 1 and Moto1 = 1 and moto2 = 1",
+  "16 Year Old 250 SX Race Winner": "SELECT DISTINCT r.FullName FROM SX_MAINS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.classID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) = 16",
+  "<18 Years Old 250 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 18",
+  "Teenage 450 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 1 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 19"
 }

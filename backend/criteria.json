@@ -54,7 +54,21 @@
     "5+ 250 SX Wins in One Season",
     "450 SX Triple Crown Overall Win",
     "250 SX Triple Crown Overall Win",
-    "250 SX East/West Showdown Win"
+    "250 SX East/West Showdown Win",
+    "Canada",
+    "Brazil",
+    "Spain",
+    "Japan",
+    "United Kingdom",
+    "European Nationality",
+    "Asian Nationality",
+    "South American Nationality",
+    "Central American Nationality",
+    "250 MX 1+ 1-1 Overall Wins (1998-Present)",
+    "450 MX 1+ 1-1 Overall Wins (1985-Present)",
+    "16 Year Old 250 SX Race Winner",
+    "<18 Years Old 250 MX Winner",
+    "Teenage 450 MX Winner"
   ],
 
 "invalid_pairings": {
@@ -94,6 +108,17 @@
   ],
   "10+ 450 SX Podiums": [
     "20+ 450 SX Wins"
+  ],
+   "European Nationality": [
+    "United Kingdom",
+    "France",
+    "Spain"
+  ],
+  "Asian Nationality": [
+    "Japan"
+  ],
+  "South American Nationality": [
+    "Brazil"
   ]
   
 }
