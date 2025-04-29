@@ -735,6 +735,9 @@ return (
             columns={columns}
             gridId={gridId}
             grid={grid}
+            categoryFlags={categoryFlags}
+            categoryLogos={categoryLogos}
+            categoryDisplayNames={categoryDisplayNames}
 />
           )}
           {isHowToPlayOpen && <HowToPlayModal isOpen={isHowToPlayOpen} onClose={() => setIsHowToPlayOpen(false)} />}

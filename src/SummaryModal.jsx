@@ -12,7 +12,10 @@ const SummaryModal = ({
     rows,
     columns,
     gridId,
-    grid
+    grid,
+    categoryFlags,
+    categoryLogos,
+    categoryDisplayNames
 }) => {
     if (!isOpen) return null; // Don't render if modal is closed
 
@@ -106,16 +109,34 @@ https://smxmuse.com/`;
                 <div className="summary-column-headers">
                 <div className="summary-empty-cell"></div>
 
-    {columns.map((col, index) => (
-        <div key={index} className="summary-header-cell">{col}</div>
-    ))}
+                {columns.map((col, index) => (
+  <div key={index} className="summary-header-cell">
+    {categoryFlags[col] ? (
+      <img src={categoryFlags[col]} alt={col} title={categoryDisplayNames[col] || col} className="header-flag" />
+    ) : categoryLogos[col] ? (
+      <img src={categoryLogos[col]} alt={col} title={categoryDisplayNames[col] || col} className="header-logo" />
+    ) : (
+      categoryDisplayNames[col] || col
+    )}
+  </div>
+))}
+
 </div>
 
 
                     <div className="grid-body">
                         {rows.map((row, rowIndex) => (
                             <div key={rowIndex} className="summary-grid-row">
-                                <div className="summary-header-cell">{row}</div>
+                                <div className="summary-header-cell">
+  {categoryFlags[row] ? (
+    <img src={categoryFlags[row]} alt={row} title={categoryDisplayNames[row] || row} className="header-flag" />
+  ) : categoryLogos[row] ? (
+    <img src={categoryLogos[row]} alt={row} title={categoryDisplayNames[row] || row} className="header-logo" />
+  ) : (
+    categoryDisplayNames[row] || row
+  )}
+</div>
+
                                 {mostGuessedGrid[rowIndex].map((cell, colIndex) => (
                                     <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
                                         <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
