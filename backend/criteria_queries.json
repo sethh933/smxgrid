@@ -48,7 +48,7 @@
   "Japan": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Japan'",
   "Brazil": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Brazil'",
   "United Kingdom": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('England', 'Wales', 'Northern Ireland', 'Scotland', 'United Kingdom')",
-  "European Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Finland', 'Italy', 'Netherlands', 'Germany', 'England', 'Lithuania', 'Switzerland', 'United Kingdom', 'Sweden', 'Ukraine', 'Czechia', 'Russia', 'Ireland', 'Latvia', 'France', 'Belgium', 'Spain', 'Denmark')",
+  "European Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Finland', 'Italy', 'Netherlands', 'Germany', 'England', 'Lithuania', 'Switzerland', 'United Kingdom', 'Sweden', 'Ukraine', 'Czechia', 'Russia', 'Ireland', 'Latvia', 'France', 'Belgium', 'Spain', 'Denmark', 'Estonia', 'Scotland')",
   "South American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Ecuador', 'Bolivia', 'Brazil', 'Argentina', 'Colombia', 'Chile', 'Venezuela')",
   "Central American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Guatemala', 'Honduras', 'Costa Rica', 'Dominican Republic')",
   "Asian Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('South Korea', 'Philippines', 'Japan', 'Mongolia')",
@@ -65,5 +65,6 @@
   "450 MX 1+ 1-1 Overall Wins (1985-Present)": "select distinct r.fullname from rider_list r JOIN MX_OVERALLS m on r.riderid = m.riderid where m.classid = 1 and Moto1 = 1 and moto2 = 1",
   "16 Year Old 250 SX Race Winner": "SELECT DISTINCT r.FullName FROM SX_MAINS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.classID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) = 16",
   "<18 Years Old 250 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 18",
-  "Teenage 450 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 1 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 19"
+  "Teenage 450 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 1 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 19",
+  "Only One Brand": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID GROUP BY r.RiderID, r.FullName HAVING COUNT(DISTINCT rb.Brand) = 1"
 }
