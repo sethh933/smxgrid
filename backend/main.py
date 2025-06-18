@@ -612,7 +612,8 @@ def get_user_profile(username: str):
     FROM Games g
     OUTER APPLY (
         SELECT 
-            SUM(gs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion)))
+            SUM(gs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT CONCAT(ug.RowCriterion, '-', ug.ColumnCriterion))
+))
             AS RarityScore
         FROM UserGuesses ug
         JOIN (
@@ -1330,7 +1331,7 @@ def get_game_summary(request: Request):
                 ),
                 UserAnsweredCells AS (
                     SELECT 
-                        COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion) AS AnsweredCells,
+                        COUNT(DISTINCT CONCAT(ug.RowCriterion, '-', ug.ColumnCriterion)) AS AnsweredCells,
                         COALESCE(SUM(gs.GuessPercentage), 0) AS TotalGuessedPercentage
                     FROM dbo.UserGuesses ug
                     JOIN GuessStats gs
@@ -1486,7 +1487,7 @@ def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[
                         SELECT 
                             ROUND(
                                 COALESCE(SUM(gs.GuessPercentage), 0) 
-                                + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))), 2)
+                                + (100 * (9 - COUNT(DISTINCT CONCAT(ug.RowCriterion, '-', ug.ColumnCriterion)))), 2)
                         FROM UserGuesses ug
                         JOIN (
                             SELECT GridID, RowCriterion, ColumnCriterion, FullName, 
