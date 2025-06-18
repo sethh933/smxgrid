@@ -1367,7 +1367,7 @@ def get_game_summary(request: Request):
 
 @app.get("/daily-leaderboard")
 def get_daily_leaderboard():
-    """Returns the top 20 lowest rarity scores for the active grid, using only the latest GameID per guest session."""
+    """Returns the top 20 lowest rarity scores for the active grid, deduplicated by Username or GuestID."""
     try:
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
@@ -1379,21 +1379,27 @@ def get_daily_leaderboard():
                 raise HTTPException(status_code=404, detail="No active grid found.")
             grid_id = result[0]
 
-            # ✅ Run rarity score query for latest GameID per session
+            # ✅ Run rarity score query deduplicated per Username/GuestID
             cursor.execute("""
-                WITH UserGameRanks AS (
+                WITH GameSessions AS (
                     SELECT 
-                        GameID, UserID, GuestID, GridID,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY COALESCE(UserID, 0), COALESCE(GuestID, '00000000-0000-0000-0000-000000000000') 
-                            ORDER BY PlayedAt DESC
-                        ) AS rn
-                    FROM dbo.Games
-                    WHERE Completed = 1 AND GridID = ?
+                        g.GameID,
+                        g.GridID,
+                        g.PlayedAt,
+                        u.Username,
+                        g.GuestID,
+                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey
+                    FROM dbo.Games g
+                    LEFT JOIN dbo.Users u ON g.GuestID = u.GuestID
+                    WHERE g.Completed = 1 AND g.GridID = ?
                 ),
-                LatestGames AS (
-                    SELECT GameID, UserID
-                    FROM UserGameRanks
+                LatestGamePerPlayer AS (
+                    SELECT GameID, PlayerKey
+                    FROM (
+                        SELECT GameID, PlayerKey,
+                               ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
+                        FROM GameSessions
+                    ) x
                     WHERE rn = 1
                 ),
                 CorrectGuesses AS (
@@ -1417,7 +1423,7 @@ def get_daily_leaderboard():
                      AND cg.ColumnCriterion = tg.ColumnCriterion
                 ),
                 UserCorrectGuesses AS (
-                    SELECT ug.GameID, ug.UserID, ug.GridID, ug.RowCriterion, ug.ColumnCriterion, ug.FullName,
+                    SELECT ug.GameID, ug.RowCriterion, ug.ColumnCriterion, ug.FullName,
                            gs.GuessPercentage
                     FROM dbo.UserGuesses ug
                     JOIN GuessStats gs
@@ -1428,18 +1434,18 @@ def get_daily_leaderboard():
                     WHERE ug.IsCorrect = 1
                 ),
                 RarityScoreRaw AS (
-                    SELECT GameID, UserID,
+                    SELECT GameID,
                            COUNT(DISTINCT RowCriterion + '|' + ColumnCriterion) AS AnsweredCells,
                            SUM(GuessPercentage) AS TotalGuessPercentage
                     FROM UserCorrectGuesses
-                    GROUP BY GameID, UserID
+                    GROUP BY GameID
                 )
                 SELECT TOP 20 
-                    COALESCE(u.Username, 'Guest') AS Username,
+                    COALESCE(s.Username, 'Guest') AS Username,
                     ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
                 FROM RarityScoreRaw r
-                JOIN LatestGames lg ON r.GameID = lg.GameID
-                LEFT JOIN dbo.Users u ON lg.UserID = u.UserID
+                JOIN LatestGamePerPlayer l ON r.GameID = l.GameID
+                JOIN GameSessions s ON r.GameID = s.GameID
                 ORDER BY RarityScore ASC
             """, (grid_id,))
 
@@ -1453,6 +1459,7 @@ def get_daily_leaderboard():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating leaderboard: {str(e)}")
+
     
 @app.get("/grid-archive")
 def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[str] = Query(None)):
