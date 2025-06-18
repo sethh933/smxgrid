@@ -1,0 +1,168 @@
+.profile-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: auto;
+  color: white;
+}
+
+.profile-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stat-box {
+  background: #1c1c1c;
+  padding: 16px;
+  border-radius: 10px;
+  flex: 1 1 180px;
+  text-align: center;
+}
+
+.stat-box span {
+  display: block;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.profile-rider-cell {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border: 1px solid white;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.profile-rider-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-rider-name-banner {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-align: center;
+  padding: 5px;
+  font-size: 12px;
+}
+
+.profile-guess-count {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.account-prompt {
+  background: #1c1c1c;
+  padding: 1.5rem;
+  border-radius: 10px;
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 400px;
+}
+
+.signup-button {
+  background-color: #2e6df6;
+  color: white;
+  padding: 0.5rem 1.2rem;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 6px;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.profile-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.profile-grid-row {
+  display: flex;
+  justify-content: center;
+  gap: 0; /* ✅ Remove spacing between cells */
+  margin-bottom: 0; /* ✅ Optional: remove vertical spacing between rows */
+}
+
+@media (max-width: 600px) {
+  .profile-container {
+    padding: 1rem;
+  }
+
+  .stat-box {
+    flex: 1 1 45%;
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .stat-box span {
+    font-size: 1.2em;
+  }
+
+  .profile-rider-cell {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile-rider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .profile-rider-name-banner {
+    font-size: 10px;
+    padding: 2px;
+  }
+
+  .guess-percentage,
+  .profile-guess-count {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  .profile-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-box {
+    flex: 1 1 auto;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .stat-box span {
+    font-size: 1.2em;
+  }
+
+  .profile-summary .stat-box:last-child {
+    grid-column: span 2;
+    justify-self: center;
+    width: 80%;
+  }
+
+.profile-container h2.pushed-down {
+    margin-top: 8rem;
+  }
+}

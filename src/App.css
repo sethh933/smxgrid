@@ -421,8 +421,34 @@ body.modal-open, html.modal-open {
   object-fit: contain;
 }
 
+.banner-nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
 
+.nav-link {
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
 
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.grid-number-cell {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background-color: transparent;
+  border: none;
+}
 
 
 @media (max-width: 600px) {
@@ -563,6 +589,19 @@ body.modal-open, html.modal-open {
     width: 50px;
     max-height: 40px;
   }
+
+  .grid-number-cell {
+  width: 80px;
+  height: 80px;
+  font-size: 9px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: none;
+  background: transparent;
+}
 }
 
 /* 💻 Responsive Grid Scaling for Laptops & High-DPI Screens */

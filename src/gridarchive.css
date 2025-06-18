@@ -1,0 +1,81 @@
+.grid-archive-table {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 0 12px; /* Adds vertical spacing between rows */
+}
+
+.grid-archive-table th,
+.grid-archive-table td {
+  padding: 12px 24px;       /* More horizontal and vertical padding */
+  text-align: left;
+}
+
+.grid-archive-table th {
+  font-size: 16px;
+  color: #cccccc;
+  text-transform: uppercase;
+  border-bottom: 1px solid #444;
+}
+
+.grid-archive-table td {
+  font-size: 15px;
+  color: white;
+}
+
+.grid-archive-table tr:hover {
+  background-color: #262626;
+}
+
+.grid-archive-link {
+  color: #4fa3ff;
+  text-decoration: none;
+}
+
+.grid-archive-link:hover {
+  text-decoration: underline;
+}
+
+.archive-wrapper {
+  margin-top: 5rem; /* or 4rem depending on banner height */
+}
+
+
+@media (max-width: 600px) {
+  .archive-wrapper {
+    margin-top: 0;
+    padding-top: 130px; /* ⬆️ was 96px — now gives extra space below TopBanner */
+  }
+
+  .grid-archive-table th {
+    position: sticky;
+    top: 96px; /* 🧷 keep this pinned under the TopBanner */
+    z-index: 10;
+  }
+
+  .grid-archive-table th,
+  .grid-archive-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .grid-archive-link {
+    font-size: 13px;
+  }
+
+  .w-6.h-6 {
+    width: 20px;
+    height: 20px;
+  }
+
+  .flex.items-center.gap-3.justify-center.mb-6 {
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+}
+
+
+
+
