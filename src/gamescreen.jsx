@@ -131,10 +131,13 @@ useEffect(() => {
     try {
       const endpoint = grid_id && !isNaN(parseInt(grid_id)) ? `/grid/${grid_id}` : `/grid`;
       const response = await axios.get(`${API_BASE_URL}${endpoint}?guest_id=${guestId}`);
+      
+      // ✅ Set grid structure
       setRows(response.data.rows);
       setColumns(response.data.columns);
       setGridId(response.data.grid_id);
 
+      // ✅ Format empty grid (fallback visual only)
       if (response.data.grid_data) {
         const formattedGrid = response.data.rows.map(row =>
           response.data.columns.map(col => response.data.grid_data[`${row},${col}`] || "")
@@ -142,7 +145,10 @@ useEffect(() => {
         setGrid(formattedGrid);
       }
 
-      // ✅ Load previous state (optional fallback)
+      // ✅ Restore game state (correct cells, attempts, etc.)
+      await restoreGameFromBackend();
+
+      // ✅ Optional: fallback for old local state (can remove if unnecessary)
       const savedUsed = JSON.parse(localStorage.getItem(`used_guesses_${response.data.grid_id}`)) || [];
       const savedIncorrect = JSON.parse(localStorage.getItem(`incorrect_guesses_${response.data.grid_id}`)) || {};
       const totalIncorrect = Object.values(savedIncorrect).reduce((acc, cell) => acc + cell.length, 0);
@@ -155,7 +161,8 @@ useEffect(() => {
   };
 
   initializeGrid();
-}, [guestId, grid_id]); // ✅ rerun whenever guestId or grid_id changes
+}, [guestId, grid_id]);
+
 
 
 useEffect(() => {
@@ -330,19 +337,6 @@ const restoreGameFromBackend = async () => {
     setHydrated(true);
   }
 };
-
-
-useEffect(() => {
-  const readyToRestore = gridId && guestId && rows.length && columns.length;
-  if (!readyToRestore) return;
-
-  const runRestore = async () => {
-    await restoreGameFromBackend();
-    setHydrated(true);
-  };
-
-  runRestore();
-}, [gridId, guestId, rows.length, columns.length]);
 
 
   // Fetch game summary when game ends
