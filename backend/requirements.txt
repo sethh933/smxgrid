@@ -4,4 +4,8 @@ pyodbc
 pydantic
 python-dotenv
 orjson
+python-jose
+passlib
+email-validator
+better_profanity
 
