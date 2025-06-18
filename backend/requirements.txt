@@ -5,7 +5,7 @@ pydantic
 python-dotenv
 orjson
 python-jose
-passlib
+passlib[bcrypt]
 email-validator
 better_profanity
 
