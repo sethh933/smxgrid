@@ -1451,6 +1451,7 @@ def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[
 
             user_ids, guest_ids = [], []
 
+
             if username:
                 cursor.execute("""
                     SELECT UserID, GuestID
