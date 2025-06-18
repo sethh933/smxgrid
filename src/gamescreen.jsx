@@ -42,6 +42,7 @@ function Game() {
   const [hasOpenedSummary, setHasOpenedSummary] = useState(false);
   const [readyForSummaryPopup, setReadyForSummaryPopup] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false); // 👈 ADD THIS
+  const [username, setUsername] = useState(null);
 
 
 
@@ -110,6 +111,14 @@ useEffect(() => {
     document.body.classList.remove("modal-open");
   }
 }, [isSummaryOpen, isHowToPlayOpen]);
+
+
+useEffect(() => {
+  const storedUsername = localStorage.getItem("username");
+  if (storedUsername) {
+    setUsername(storedUsername);
+  }
+}, []);
 
 
 // ✅ Generate or Retrieve UUID from LocalStorage
@@ -235,7 +244,7 @@ const restoreGameFromBackend = async () => {
   if (!guestId || guestId === "undefined" || !gridId) return;
 
   try {
-    const username = localStorage.getItem("username");
+    if (!guestId || guestId === "undefined" || !gridId) return;
     const progressUrl = username
       ? `${API_BASE_URL}/game-progress?grid_id=${gridId}&username=${username}`
       : `${API_BASE_URL}/game-progress?grid_id=${gridId}&guest_id=${guestId}`;
@@ -333,7 +342,7 @@ const restoreGameFromBackend = async () => {
 
 
 useEffect(() => {
-  const readyToRestore = gridId && guestId && rows.length && columns.length;
+  const readyToRestore = gridId && (guestId || username) && rows.length && columns.length;
   if (!readyToRestore) return;
 
   const runRestore = async () => {
