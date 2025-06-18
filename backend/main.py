@@ -1367,7 +1367,7 @@ def get_game_summary(request: Request):
 
 @app.get("/daily-leaderboard")
 def get_daily_leaderboard():
-    """Returns the top 20 lowest rarity scores for the active grid, deduplicated by Username or GuestID."""
+    """Returns the top 20 lowest rarity scores for the active grid, showing 'Guest' for players without a username."""
     try:
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
@@ -1379,7 +1379,7 @@ def get_daily_leaderboard():
                 raise HTTPException(status_code=404, detail="No active grid found.")
             grid_id = result[0]
 
-            # ✅ Run rarity score query deduplicated per Username/GuestID
+            # ✅ Execute deduplicated rarity score query
             cursor.execute("""
                 WITH GameSessions AS (
                     SELECT 
@@ -1388,9 +1388,10 @@ def get_daily_leaderboard():
                         g.PlayedAt,
                         u.Username,
                         g.GuestID,
-                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey
+                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
+                        CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
                     FROM dbo.Games g
-                    LEFT JOIN dbo.Users u ON g.GuestID = u.GuestID
+                    LEFT JOIN dbo.Users u ON g.UserID = u.UserID
                     WHERE g.Completed = 1 AND g.GridID = ?
                 ),
                 LatestGamePerPlayer AS (
@@ -1441,11 +1442,11 @@ def get_daily_leaderboard():
                     GROUP BY GameID
                 )
                 SELECT TOP 20 
-                    COALESCE(s.Username, 'Guest') AS Username,
+                    gs.DisplayName AS Username,
                     ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
                 FROM RarityScoreRaw r
-                JOIN LatestGamePerPlayer l ON r.GameID = l.GameID
-                JOIN GameSessions s ON r.GameID = s.GameID
+                JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
+                JOIN GameSessions gs ON r.GameID = gs.GameID
                 ORDER BY RarityScore ASC
             """, (grid_id,))
 
@@ -1459,6 +1460,7 @@ def get_daily_leaderboard():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating leaderboard: {str(e)}")
+
 
     
 @app.get("/grid-archive")
