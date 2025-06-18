@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import "./DailyLeaderboard.css";
+import './dailyleaderboard.css';
 
 export default function LeaderboardModal({ open, onClose, leaderboardData }) {
     const modalRef = useRef(null);
