@@ -1367,7 +1367,7 @@ def get_game_summary(request: Request):
 
 @app.get("/daily-leaderboard")
 def get_daily_leaderboard():
-    """Returns the top 20 lowest rarity scores for today's active grid."""
+    """Returns the top 20 lowest rarity scores for the active grid, using only the latest GameID per guest session."""
     try:
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
@@ -1379,9 +1379,24 @@ def get_daily_leaderboard():
                 raise HTTPException(status_code=404, detail="No active grid found.")
             grid_id = result[0]
 
-            # ✅ Run rarity score calculation query
+            # ✅ Run rarity score query for latest GameID per session
             cursor.execute("""
-                WITH CorrectGuesses AS (
+                WITH UserGameRanks AS (
+                    SELECT 
+                        GameID, UserID, GuestID, GridID,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY COALESCE(UserID, 0), COALESCE(GuestID, '00000000-0000-0000-0000-000000000000') 
+                            ORDER BY PlayedAt DESC
+                        ) AS rn
+                    FROM dbo.Games
+                    WHERE Completed = 1 AND GridID = ?
+                ),
+                LatestGames AS (
+                    SELECT GameID, UserID
+                    FROM UserGameRanks
+                    WHERE rn = 1
+                ),
+                CorrectGuesses AS (
                     SELECT GridID, RowCriterion, ColumnCriterion, FullName, COUNT(*) AS RiderGuessCount
                     FROM dbo.UserGuesses
                     WHERE IsCorrect = 1
@@ -1413,23 +1428,18 @@ def get_daily_leaderboard():
                     WHERE ug.IsCorrect = 1
                 ),
                 RarityScoreRaw AS (
-                    SELECT GameID, GridID, UserID,
+                    SELECT GameID, UserID,
                            COUNT(DISTINCT RowCriterion + '|' + ColumnCriterion) AS AnsweredCells,
                            SUM(GuessPercentage) AS TotalGuessPercentage
                     FROM UserCorrectGuesses
-                    GROUP BY GameID, GridID, UserID
-                ),
-                CompletedGames AS (
-                    SELECT GameID, GridID, UserID
-                    FROM dbo.Games
-                    WHERE Completed = 1 AND GridID = ?
+                    GROUP BY GameID, UserID
                 )
                 SELECT TOP 20 
                     COALESCE(u.Username, 'Guest') AS Username,
                     ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
                 FROM RarityScoreRaw r
-                JOIN CompletedGames g ON r.GameID = g.GameID AND r.UserID = g.UserID
-                LEFT JOIN dbo.Users u ON r.UserID = u.UserID
+                JOIN LatestGames lg ON r.GameID = lg.GameID
+                LEFT JOIN dbo.Users u ON lg.UserID = u.UserID
                 ORDER BY RarityScore ASC
             """, (grid_id,))
 
