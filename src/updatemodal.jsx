@@ -1,5 +1,5 @@
 import React from "react";
-import "./UpdateModal.css";
+import './updatemodal.css';
 
 export default function UpdateModal({ onClose }) {
   return (
