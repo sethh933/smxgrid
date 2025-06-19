@@ -1710,21 +1710,28 @@ def reload_config():
 @app.post("/refresh-cache")
 def refresh_cache():
     try:
+        print("🔄 Step 1: Starting refresh")
         global rider_cache
-        print("🔄 Clearing cache...")
         rider_cache.clear()
+        print("🧹 Step 2: Cleared rider_cache")
 
         with pyodbc.connect(CONN_STR) as conn:
+            print("🔌 Step 3: DB connection opened")
             cursor = conn.cursor()
-            print("🔍 Fetching rider list...")
             cursor.execute("SELECT FullName FROM Rider_List")
-            rider_cache.update(row[0] for row in cursor.fetchall())
+            names = cursor.fetchall()
+            print(f"📝 Step 4: Retrieved {len(names)} riders")
 
-        print("✅ Cache refreshed")
+            # ✅ Convert list of names to a key-value dict
+            rider_cache.update({row[0]: True for row in names})
+
+        print("✅ Step 5: Cache refresh complete")
         return {"message": "✅ Rider cache refreshed successfully."}
-    
+
     except Exception as e:
         print("❌ ERROR in /refresh-cache:", str(e))
-        raise HTTPException(status_code=500, detail="Internal cache refresh failure")
+        raise HTTPException(status_code=500, detail=f"Internal cache refresh failure: {str(e)}")
+
+
 
 
