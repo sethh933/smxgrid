@@ -1456,86 +1456,100 @@ def get_game_summary(request: Request):
 
 @app.get("/daily-leaderboard")
 def get_daily_leaderboard():
-    """Returns the top 20 lowest rarity scores for today's active grid."""
-    conn = pyodbc.connect(CONN_STR)
-    cursor = conn.cursor()
-
+    """Returns the top 20 lowest rarity scores for the active grid, showing 'Guest' for players without a username."""
     try:
-        # ✅ Get active grid ID
-        cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active'")
-        result = cursor.fetchone()
-        if not result:
-            raise HTTPException(status_code=404, detail="No active grid found.")
-        grid_id = result[0]
+        with pyodbc.connect(CONN_STR) as conn:
+            cursor = conn.cursor()
 
-        # ✅ Run rarity score calculation query
-        cursor.execute("""
-            WITH CorrectGuesses AS (
-                SELECT GridID, RowCriterion, ColumnCriterion, FullName, COUNT(*) AS RiderGuessCount
-                FROM dbo.UserGuesses
-                WHERE IsCorrect = 1
-                GROUP BY GridID, RowCriterion, ColumnCriterion, FullName
-            ),
-            TotalGuessesPerCell AS (
-                SELECT GridID, RowCriterion, ColumnCriterion, SUM(RiderGuessCount) AS TotalCellGuesses
-                FROM CorrectGuesses
-                GROUP BY GridID, RowCriterion, ColumnCriterion
-            ),
-            GuessStats AS (
-                SELECT cg.GridID, cg.RowCriterion, cg.ColumnCriterion, cg.FullName,
-                       (cg.RiderGuessCount * 100.0 / NULLIF(tg.TotalCellGuesses, 0)) AS GuessPercentage
-                FROM CorrectGuesses cg
-                JOIN TotalGuessesPerCell tg
-                  ON cg.GridID = tg.GridID
-                 AND cg.RowCriterion = tg.RowCriterion
-                 AND cg.ColumnCriterion = tg.ColumnCriterion
-            ),
-            UserCorrectGuesses AS (
-                SELECT ug.GameID, ug.UserID, ug.GridID, ug.RowCriterion, ug.ColumnCriterion, ug.FullName,
-                       gs.GuessPercentage
-                FROM dbo.UserGuesses ug
-                JOIN GuessStats gs
-                  ON ug.GridID = gs.GridID
-                 AND ug.RowCriterion = gs.RowCriterion
-                 AND ug.ColumnCriterion = gs.ColumnCriterion
-                 AND ug.FullName = gs.FullName
-                WHERE ug.IsCorrect = 1
-            ),
-            RarityScoreRaw AS (
-                SELECT GameID, GridID, UserID,
-                       COUNT(DISTINCT RowCriterion + '|' + ColumnCriterion) AS AnsweredCells,
-                       SUM(GuessPercentage) AS TotalGuessPercentage
-                FROM UserCorrectGuesses
-                GROUP BY GameID, GridID, UserID
-            ),
-            CompletedGames AS (
-                SELECT GameID, GridID, UserID
-                FROM dbo.Games
-                WHERE Completed = 1 AND GridID = ?
-            )
-            SELECT TOP 20 
-                COALESCE(u.Username, 'Guest') AS Username,
-                ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
-            FROM RarityScoreRaw r
-            JOIN CompletedGames g ON r.GameID = g.GameID AND r.UserID = g.UserID
-            LEFT JOIN dbo.Users u ON r.UserID = u.UserID
-            ORDER BY RarityScore ASC
-        """, (grid_id,))
+            # ✅ Get active grid ID
+            cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active'")
+            result = cursor.fetchone()
+            if not result:
+                raise HTTPException(status_code=404, detail="No active grid found.")
+            grid_id = result[0]
 
-        rows = cursor.fetchall()
-        leaderboard = [
-            {"username": row[0], "rarity_score": float(row[1])}
-            for row in rows
-        ]
+            # ✅ Execute deduplicated rarity score query with connection pooling
+            cursor.execute("""
+                WITH GameSessions AS (
+                    SELECT 
+                        g.GameID,
+                        g.GridID,
+                        g.PlayedAt,
+                        u.Username,
+                        g.GuestID,
+                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
+                        CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
+                    FROM dbo.Games g
+                    LEFT JOIN dbo.Users u ON g.UserID = u.UserID
+                    WHERE g.Completed = 1 AND g.GridID = ?
+                ),
+                LatestGamePerPlayer AS (
+                    SELECT GameID, PlayerKey
+                    FROM (
+                        SELECT GameID, PlayerKey,
+                               ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
+                        FROM GameSessions
+                    ) x
+                    WHERE rn = 1
+                ),
+                CorrectGuesses AS (
+                    SELECT GridID, RowCriterion, ColumnCriterion, FullName, COUNT(*) AS RiderGuessCount
+                    FROM dbo.UserGuesses
+                    WHERE IsCorrect = 1
+                    GROUP BY GridID, RowCriterion, ColumnCriterion, FullName
+                ),
+                TotalGuessesPerCell AS (
+                    SELECT GridID, RowCriterion, ColumnCriterion, SUM(RiderGuessCount) AS TotalCellGuesses
+                    FROM CorrectGuesses
+                    GROUP BY GridID, RowCriterion, ColumnCriterion
+                ),
+                GuessStats AS (
+                    SELECT cg.GridID, cg.RowCriterion, cg.ColumnCriterion, cg.FullName,
+                           (cg.RiderGuessCount * 100.0 / NULLIF(tg.TotalCellGuesses, 0)) AS GuessPercentage
+                    FROM CorrectGuesses cg
+                    JOIN TotalGuessesPerCell tg
+                      ON cg.GridID = tg.GridID
+                     AND cg.RowCriterion = tg.RowCriterion
+                     AND cg.ColumnCriterion = tg.ColumnCriterion
+                ),
+                UserCorrectGuesses AS (
+                    SELECT ug.GameID, ug.RowCriterion, ug.ColumnCriterion, ug.FullName,
+                           gs.GuessPercentage
+                    FROM dbo.UserGuesses ug
+                    JOIN GuessStats gs
+                      ON ug.GridID = gs.GridID
+                     AND ug.RowCriterion = gs.RowCriterion
+                     AND ug.ColumnCriterion = gs.ColumnCriterion
+                     AND ug.FullName = gs.FullName
+                    WHERE ug.IsCorrect = 1
+                ),
+                RarityScoreRaw AS (
+                    SELECT GameID,
+                           COUNT(DISTINCT RowCriterion + '|' + ColumnCriterion) AS AnsweredCells,
+                           SUM(GuessPercentage) AS TotalGuessPercentage
+                    FROM UserCorrectGuesses
+                    GROUP BY GameID
+                )
+                SELECT TOP 20 
+                    gs.DisplayName AS Username,
+                    ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
+                FROM RarityScoreRaw r
+                JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
+                JOIN GameSessions gs ON r.GameID = gs.GameID
+                ORDER BY RarityScore ASC
+            """, (grid_id,))
 
-        return leaderboard
+            rows = cursor.fetchall()
+            leaderboard = [
+                {"username": row[0], "rarity_score": float(row[1])}
+                for row in rows
+            ]
+
+            return leaderboard
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating leaderboard: {str(e)}")
 
-    finally:
-        cursor.close()
-        conn.close()
 
     
 @app.get("/grid-archive")
@@ -1693,8 +1707,15 @@ def reload_config():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reload config: {str(e)}")
     
-@app.post("/refresh-rider-cache")
-def refresh_rider_cache():
-    """Clear rider cache so next fetch is fresh from DB."""
+@app.post("/refresh-cache")
+def refresh_cache():
+    global rider_cache
     rider_cache.clear()
-    return {"message": "✅ Rider cache cleared"}
+
+    with pyodbc.connect(CONN_STR) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT FullName FROM Rider_List")
+        rider_cache.update(row[0] for row in cursor.fetchall())
+
+    return {"message": "✅ Rider cache refreshed successfully."}
+
