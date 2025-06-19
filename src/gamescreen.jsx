@@ -43,6 +43,8 @@ function Game() {
   const [readyForSummaryPopup, setReadyForSummaryPopup] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false); // 👈 ADD THIS
   const [username, setUsername] = useState(null);
+  const [gameStarted, setGameStarted] = useState(false);
+
 
 
 

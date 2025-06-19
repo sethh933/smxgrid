@@ -30,6 +30,7 @@ export default function LeaderboardModal({ open, onClose, leaderboardData }) {
             <div className="leaderboard-modal-content" ref={modalRef}>
                 <button className="summary-close-button" onClick={onClose}>X</button>
                 <h2>Daily Grid Rarity Leaderboard</h2>
+                <h3>Top 20 Scores</h3>
                 <table className="w-full text-sm mt-4 leaderboard-table">
                     <thead className="bg-gray-800 text-white">
                         <tr>
