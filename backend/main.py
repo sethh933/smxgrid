@@ -1553,7 +1553,11 @@ def get_daily_leaderboard():
 
     
 @app.get("/grid-archive")
-def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[str] = Query(None)):
+def get_grid_archive(
+    guest_id: Optional[UUID] = Query(None),
+    username: Optional[str] = Query(None),
+    show_all: bool = Query(False)
+):
     conn = pyodbc.connect(CONN_STR)
     cursor = conn.cursor()
 
@@ -1593,8 +1597,11 @@ def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[
             ) game
         """
 
+        # ✅ Add TOP 20 if show_all is False
+        top_clause = "" if show_all else "TOP 20"
+
         cursor.execute(f"""
-            SELECT 
+            SELECT {top_clause}
                 d.GridID, d.GridDate, 
                 game.Completed, game.GuessesCorrect, 
                 (
@@ -1639,6 +1646,7 @@ def get_grid_archive(guest_id: Optional[UUID] = Query(None), username: Optional[
     finally:
         cursor.close()
         conn.close()
+
 
 @app.post("/populate-grid-pool")
 def populate_grid_pool(max_to_generate: int = 1000):

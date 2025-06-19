@@ -41,6 +41,31 @@
   margin-top: 5rem; /* or 4rem depending on banner height */
 }
 
+.archive-button {
+  background-color: #6366f1;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+  margin: 0 auto;              /* ✅ Centers button within td */
+  display: block;              /* ✅ Required for margin auto to take effect */
+  margin-bottom: 30px; /* gives space below the button */
+}
+
+.archive-button:hover {
+  background-color: #4f46e5;
+}
+
+.archive-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+
 
 @media (max-width: 600px) {
   .archive-wrapper {
