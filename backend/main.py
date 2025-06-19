@@ -574,23 +574,16 @@ def get_user_profile(username: str):
                 ROUND(MIN(ISNULL(ProfileRarity.RarityScore, 0)), 2) AS LowestRarity
             FROM Games g
             OUTER APPLY (
-                SELECT 
-                    SUM(gs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion)))
-                    AS RarityScore
-                FROM UserGuesses ug
-                JOIN (
-                    SELECT GridID, RowCriterion, ColumnCriterion, FullName,
-                        COUNT(*) * 100.0 / NULLIF(SUM(COUNT(*)) OVER(PARTITION BY GridID, RowCriterion, ColumnCriterion), 0) AS GuessPercentage
-                    FROM UserGuesses
-                    WHERE IsCorrect = 1
-                    GROUP BY GridID, RowCriterion, ColumnCriterion, FullName
-                ) gs
-                  ON ug.GridID = gs.GridID
-                 AND ug.RowCriterion = gs.RowCriterion
-                 AND ug.ColumnCriterion = gs.ColumnCriterion
-                 AND ug.FullName = gs.FullName
-                WHERE ug.GameID = g.GameID AND ug.IsCorrect = 1
-            ) AS ProfileRarity
+    SELECT 
+        SUM(rs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))) AS RarityScore
+    FROM UserGuesses ug
+    JOIN RarityGuessStats rs
+      ON ug.GridID = rs.GridID
+     AND ug.RowCriterion = rs.RowCriterion
+     AND ug.ColumnCriterion = rs.ColumnCriterion
+     AND ug.FullName = rs.FullName
+    WHERE ug.GameID = g.GameID AND ug.IsCorrect = 1
+) AS ProfileRarity
             WHERE g.Completed = 1 AND (
                 g.UserID IN ({user_placeholders}) OR g.GuestID IN ({guest_placeholders})
             )
@@ -1120,6 +1113,8 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
 
         conn.commit()
 
+        update_rarity_stats(grid_id, guess.row, guess.column, conn)
+
         if not is_correct:
             return {
                 "message": f"❌ '{guess.rider}' is incorrect for {guess.row} | {guess.column}!",
@@ -1469,75 +1464,51 @@ def get_daily_leaderboard():
             grid_id = result[0]
 
             # ✅ Execute deduplicated rarity score query
+            # ✅ Execute deduplicated rarity score query using precomputed rarity
             cursor.execute("""
-                WITH GameSessions AS (
-                    SELECT 
-                        g.GameID,
-                        g.GridID,
-                        g.PlayedAt,
-                        u.Username,
-                        g.GuestID,
-                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
-                        CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
-                    FROM dbo.Games g
-                    LEFT JOIN dbo.Users u ON g.UserID = u.UserID
-                    WHERE g.Completed = 1 AND g.GridID = ?
-                ),
-                LatestGamePerPlayer AS (
-                    SELECT GameID, PlayerKey
-                    FROM (
-                        SELECT GameID, PlayerKey,
-                               ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
-                        FROM GameSessions
-                    ) x
-                    WHERE rn = 1
-                ),
-                CorrectGuesses AS (
-                    SELECT GridID, RowCriterion, ColumnCriterion, FullName, COUNT(*) AS RiderGuessCount
-                    FROM dbo.UserGuesses
-                    WHERE IsCorrect = 1
-                    GROUP BY GridID, RowCriterion, ColumnCriterion, FullName
-                ),
-                TotalGuessesPerCell AS (
-                    SELECT GridID, RowCriterion, ColumnCriterion, SUM(RiderGuessCount) AS TotalCellGuesses
-                    FROM CorrectGuesses
-                    GROUP BY GridID, RowCriterion, ColumnCriterion
-                ),
-                GuessStats AS (
-                    SELECT cg.GridID, cg.RowCriterion, cg.ColumnCriterion, cg.FullName,
-                           (cg.RiderGuessCount * 100.0 / NULLIF(tg.TotalCellGuesses, 0)) AS GuessPercentage
-                    FROM CorrectGuesses cg
-                    JOIN TotalGuessesPerCell tg
-                      ON cg.GridID = tg.GridID
-                     AND cg.RowCriterion = tg.RowCriterion
-                     AND cg.ColumnCriterion = tg.ColumnCriterion
-                ),
-                UserCorrectGuesses AS (
-                    SELECT ug.GameID, ug.RowCriterion, ug.ColumnCriterion, ug.FullName,
-                           gs.GuessPercentage
-                    FROM dbo.UserGuesses ug
-                    JOIN GuessStats gs
-                      ON ug.GridID = gs.GridID
-                     AND ug.RowCriterion = gs.RowCriterion
-                     AND ug.ColumnCriterion = gs.ColumnCriterion
-                     AND ug.FullName = gs.FullName
-                    WHERE ug.IsCorrect = 1
-                ),
-                RarityScoreRaw AS (
-                    SELECT GameID,
-                           COUNT(DISTINCT RowCriterion + '|' + ColumnCriterion) AS AnsweredCells,
-                           SUM(GuessPercentage) AS TotalGuessPercentage
-                    FROM UserCorrectGuesses
-                    GROUP BY GameID
-                )
-                SELECT TOP 20 
-                    gs.DisplayName AS Username,
-                    ROUND(r.TotalGuessPercentage + (100 * (9 - r.AnsweredCells)), 2) AS RarityScore
-                FROM RarityScoreRaw r
-                JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
-                JOIN GameSessions gs ON r.GameID = gs.GameID
-                ORDER BY RarityScore ASC
-            """, (grid_id,))
+    WITH GameSessions AS (
+        SELECT 
+            g.GameID,
+            g.GridID,
+            g.PlayedAt,
+            u.Username,
+            g.GuestID,
+            COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
+            CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
+        FROM dbo.Games g
+        LEFT JOIN dbo.Users u ON g.UserID = u.UserID
+        WHERE g.Completed = 1 AND g.GridID = ?
+    ),
+    LatestGamePerPlayer AS (
+        SELECT GameID, PlayerKey
+        FROM (
+            SELECT GameID, PlayerKey,
+                   ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
+            FROM GameSessions
+        ) x
+        WHERE rn = 1
+    ),
+    RarityScoreRaw AS (
+        SELECT 
+            ug.GameID,
+            SUM(rs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))) AS RarityScore
+        FROM dbo.UserGuesses ug
+        JOIN dbo.RarityGuessStats rs
+          ON ug.GridID = rs.GridID
+         AND ug.RowCriterion = rs.RowCriterion
+         AND ug.ColumnCriterion = rs.ColumnCriterion
+         AND ug.FullName = rs.FullName
+        WHERE ug.GridID = ? AND ug.IsCorrect = 1
+        GROUP BY ug.GameID
+    )
+    SELECT TOP 20 
+        gs.DisplayName AS Username,
+        ROUND(r.RarityScore, 2) AS RarityScore
+    FROM RarityScoreRaw r
+    JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
+    JOIN GameSessions gs ON r.GameID = gs.GameID
+    ORDER BY RarityScore ASC
+""", (grid_id, grid_id))
 
             rows = cursor.fetchall()
             leaderboard = [
@@ -1603,24 +1574,23 @@ def get_grid_archive(
         cursor.execute(f"""
             SELECT {top_clause}
                 d.GridID, d.GridDate, 
-                game.Completed, game.GuessesCorrect, 
-                (
-                    SELECT 
-                        ROUND(
-                            COALESCE(SUM(gs.GuessPercentage), 0) 
-                            + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))), 2)
-                    FROM UserGuesses ug
-                    JOIN (
-                        SELECT GridID, RowCriterion, ColumnCriterion, FullName, 
-                               COUNT(*) * 100.0 / 
-                               NULLIF(SUM(COUNT(*)) OVER(PARTITION BY GridID, RowCriterion, ColumnCriterion), 0) AS GuessPercentage
-                        FROM UserGuesses
-                        WHERE IsCorrect = 1
-                        GROUP BY GridID, RowCriterion, ColumnCriterion, FullName
-                    ) gs ON ug.GridID = gs.GridID AND ug.RowCriterion = gs.RowCriterion 
-                         AND ug.ColumnCriterion = gs.ColumnCriterion AND ug.FullName = gs.FullName
-                    WHERE ug.GameID = game.GameID AND ug.IsCorrect = 1
-                ) AS RarityScore
+                game.Completed, game.GuessesCorrect,
+                CASE 
+                    WHEN game.GameID IS NOT NULL THEN (
+                        SELECT 
+                            ROUND(
+                                COALESCE(SUM(rs.GuessPercentage), 0) 
+                                + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))), 2)
+                        FROM UserGuesses ug
+                        JOIN RarityGuessStats rs
+                          ON ug.GridID = rs.GridID
+                         AND ug.RowCriterion = rs.RowCriterion
+                         AND ug.ColumnCriterion = rs.ColumnCriterion
+                         AND ug.FullName = rs.FullName
+                        WHERE ug.GameID = game.GameID AND ug.IsCorrect = 1
+                    )
+                    ELSE NULL
+                END AS RarityScore
             FROM DailyGrids d
             {join_clause}
             WHERE d.Status = 'Archived'
@@ -1646,6 +1616,40 @@ def get_grid_archive(
     finally:
         cursor.close()
         conn.close()
+
+def update_rarity_stats(grid_id: int, row: str, col: str, conn):
+    cursor = conn.cursor()
+    cursor.execute("""
+        WITH CorrectGuesses AS (
+            SELECT FullName, COUNT(*) AS GuessCount
+            FROM UserGuesses
+            WHERE IsCorrect = 1
+              AND GridID = ? AND RowCriterion = ? AND ColumnCriterion = ?
+            GROUP BY FullName
+        ),
+        TotalGuesses AS (
+            SELECT SUM(GuessCount) AS Total
+            FROM CorrectGuesses
+        )
+        MERGE RarityGuessStats AS target
+        USING (
+            SELECT 
+                ?, ?, ?, cg.FullName,
+                (cg.GuessCount * 100.0 / NULLIF(t.Total, 0)) AS GuessPercentage
+            FROM CorrectGuesses cg
+            CROSS JOIN TotalGuesses t
+        ) AS source (GridID, RowCriterion, ColumnCriterion, FullName, GuessPercentage)
+        ON target.GridID = source.GridID
+           AND target.RowCriterion = source.RowCriterion
+           AND target.ColumnCriterion = source.ColumnCriterion
+           AND target.FullName = source.FullName
+        WHEN MATCHED THEN
+            UPDATE SET GuessPercentage = source.GuessPercentage, LastUpdated = GETDATE()
+        WHEN NOT MATCHED THEN
+            INSERT (GridID, RowCriterion, ColumnCriterion, FullName, GuessPercentage)
+            VALUES (source.GridID, source.RowCriterion, source.ColumnCriterion, source.FullName, source.GuessPercentage);
+    """, (grid_id, row, col, grid_id, row, col))
+    conn.commit()
 
 
 @app.post("/populate-grid-pool")
