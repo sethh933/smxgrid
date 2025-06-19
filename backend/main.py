@@ -1468,7 +1468,7 @@ def get_daily_leaderboard():
                 raise HTTPException(status_code=404, detail="No active grid found.")
             grid_id = result[0]
 
-            # ✅ Execute deduplicated rarity score query with connection pooling
+            # ✅ Execute deduplicated rarity score query
             cursor.execute("""
                 WITH GameSessions AS (
                     SELECT 
