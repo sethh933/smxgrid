@@ -1719,18 +1719,20 @@ def refresh_cache():
             print("🔌 Step 3: DB connection opened")
             cursor = conn.cursor()
             cursor.execute("SELECT FullName FROM Rider_List")
-            names = cursor.fetchall()
-            print(f"📝 Step 4: Retrieved {len(names)} riders")
+            rows = cursor.fetchall()
+            print(f"📝 Step 4: Retrieved {len(rows)} riders")
 
-            # ✅ Convert list of names to a key-value dict
-            rider_cache.update({row[0]: True for row in names})
+            rider_cache.update({row[0]: True for row in rows})
 
         print("✅ Step 5: Cache refresh complete")
         return {"message": "✅ Rider cache refreshed successfully."}
 
     except Exception as e:
+        import traceback
         print("❌ ERROR in /refresh-cache:", str(e))
+        print(traceback.format_exc())  # 🔍 full traceback to Azure logs
         raise HTTPException(status_code=500, detail=f"Internal cache refresh failure: {str(e)}")
+
 
 
 
