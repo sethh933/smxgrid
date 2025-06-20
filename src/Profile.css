@@ -105,7 +105,7 @@
 
 @media (max-width: 600px) {
   .profile-container {
-    padding: 1rem;
+    padding: 6rem 1rem 1rem 1rem; /* add top padding for banner spacing */
   }
 
   .stat-box {
@@ -162,7 +162,8 @@
     width: 80%;
   }
 
-.profile-container h2.pushed-down {
-    margin-top: 8rem;
+  .profile-container h2 {
+    margin-top: 0;
   }
 }
+
