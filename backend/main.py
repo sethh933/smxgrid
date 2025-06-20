@@ -592,26 +592,56 @@ def get_user_profile(username: str):
         stats = cursor.fetchone() or (0, 0.0, 0.0, 0.0)
 
         # ✅ Current streak
+        # ✅ Accurate daily streak calculation
         cursor.execute(f"""
-            WITH OrderedGames AS (
-                SELECT 
-                    PlayedAt,
-                    Completed,
-                    ROW_NUMBER() OVER (ORDER BY PlayedAt DESC) AS rn,
-                    ROW_NUMBER() OVER (PARTITION BY Completed ORDER BY PlayedAt DESC) AS group_rn
-                FROM Games
-                WHERE UserID IN ({user_placeholders}) OR GuestID IN ({guest_placeholders})
-            )
-            SELECT COUNT(*) AS CurrentStreak
-            FROM OrderedGames
-            WHERE rn = group_rn AND rn <= (
-                SELECT MIN(rn)
-                FROM OrderedGames
-                WHERE Completed = 0
-            )
-        """, all_params)
+    WITH UserIDs AS (
+        SELECT UserID, GuestID
+        FROM dbo.Users
+        WHERE Username = ?
+    ),
+    AllGrids AS (
+        SELECT GridID, GridDate
+        FROM dbo.DailyGrids
+        WHERE Status IN ('Archived', 'Active')
+    ),
+    UserGames AS (
+        SELECT g.GridID, g.Completed,
+               ROW_NUMBER() OVER (PARTITION BY g.GridID ORDER BY g.PlayedAt DESC) AS rn
+        FROM dbo.Games g
+        JOIN UserIDs u ON g.UserID = u.UserID OR g.GuestID = u.GuestID
+    ),
+    LatestUserGames AS (
+        SELECT GridID, Completed
+        FROM UserGames
+        WHERE rn = 1
+    ),
+    GridsWithCompletion AS (
+        SELECT ag.GridID, ag.GridDate, 
+               ISNULL(lg.Completed, 0) AS IsCompleted
+        FROM AllGrids ag
+        LEFT JOIN LatestUserGames lg ON ag.GridID = lg.GridID
+    ),
+    StreakCalc AS (
+        SELECT *, 
+               ROW_NUMBER() OVER (ORDER BY GridDate DESC) AS rn_desc
+        FROM GridsWithCompletion
+    ),
+    FirstMiss AS (
+        SELECT MIN(rn_desc) AS FirstUncompleted
+        FROM StreakCalc
+        WHERE IsCompleted = 0
+    )
+    SELECT COUNT(*) AS CurrentStreak
+    FROM (
+        SELECT rn_desc
+        FROM StreakCalc
+        CROSS JOIN FirstMiss f
+        WHERE rn_desc < f.FirstUncompleted OR f.FirstUncompleted IS NULL
+    ) x;
+""", (username,))
         streak = cursor.fetchone()
         current_streak = streak[0] if streak else 0
+
 
         # ✅ Top riders
         cursor.execute(f"""
