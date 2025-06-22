@@ -5,11 +5,13 @@ import GridArchive from "./gridarchive";
 import Profile from "./Profile";
 import ResetPassword from "./resetpassword";
 import ResetPasswordConfirm from "./resetpasswordconfirm";
+import TopBanner from "./TopBanner"; // ✅ ADD THIS
 
 
 function App() {
   return (
     <Router>
+      <TopBanner /> {/* ✅ Add this above Routes so it doesn’t re-mount */}
       <Routes>
         <Route path="/" element={<Game />} />
         <Route path="/grid/:grid_id" element={<Game />} />
