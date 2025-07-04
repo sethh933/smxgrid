@@ -46,10 +46,16 @@ function Game() {
   const [gameStarted, setGameStarted] = useState(false);
 
 
-
+  const usFlag = "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg";
 
   const categoryFlags = {
-    "United States": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
+    "United States": usFlag,
+    "United States 1": usFlag,
+    "United States 2": usFlag,
+    "United States 3": usFlag,
+    "United States A": usFlag,
+    "United States B": usFlag,
+    "United States C": usFlag,
     "France": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
     "Australia": "https://upload.wikimedia.org/wikipedia/en/b/b9/Flag_of_Australia.svg",
     "United Kingdom": "https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg",
@@ -71,8 +77,13 @@ function Game() {
   };
   
   const categoryDisplayNames = {
-    // 🌍 Countries
     "United States": "United States nationality",
+    "United States 1": "United States nationality",
+    "United States 2": "United States nationality",
+    "United States 3": "United States nationality",
+    "United States A": "United States nationality",
+    "United States B": "United States nationality",
+    "United States C": "United States nationality",
     "France": "France nationality",
     "Australia": "Australia nationality",
     "United Kingdom": "United Kingdom nationality",

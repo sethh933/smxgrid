@@ -66,5 +66,11 @@
   "16 Year Old 250 SX Race Winner": "SELECT DISTINCT r.FullName FROM SX_MAINS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.classID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) = 16",
   "<18 Years Old 250 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 2 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 18",
   "Teenage 450 MX Winner": "SELECT DISTINCT r.FullName FROM MX_OVERALLS sm JOIN Race_Table rt ON sm.RaceID = rt.RaceID JOIN Rider_List r ON sm.RiderID = r.RiderID WHERE sm.Result = 1 AND sm.ClassID = 1 AND r.DOB IS NOT NULL AND (DATEDIFF(YEAR, r.DOB, rt.RaceDate) - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, r.DOB, rt.RaceDate), r.DOB) > rt.RaceDate THEN 1 ELSE 0 END) <= 19",
-  "Only One Brand": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID GROUP BY r.RiderID, r.FullName HAVING COUNT(DISTINCT rb.Brand) = 1"
+  "Only One Brand": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID GROUP BY r.RiderID, r.FullName HAVING COUNT(DISTINCT rb.Brand) = 1",
+  "United States 1": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "United States 2": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "United States 3": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "United States A": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "United States B": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "United States C": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'"
 }
