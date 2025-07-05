@@ -205,26 +205,23 @@ useEffect(() => {
 }, [guestId, gridId]);
 
 
-useEffect(() => {
-  const modalSeenKey = "seenUpdateModal_2025_06_18";
-  const now = new Date();
+// useEffect(() => {
+//   const modalSeenKey = "seenUpdateModal_2025_06_18";
+//   const now = new Date();
 
-  // Convert current time to Eastern Time (EDT/EST)
-  const nowUTC = now.getTime() + now.getTimezoneOffset() * 60000;
-  const eastCoastOffset = -4 * 60; // EDT is UTC-4
-  const nowEST = new Date(nowUTC + eastCoastOffset * 60000);
+//   const nowUTC = now.getTime() + now.getTimezoneOffset() * 60000;
+//   const eastCoastOffset = -4 * 60;
+//   const nowEST = new Date(nowUTC + eastCoastOffset * 60000);
 
-  // Target time: June 18, 2025 @ 4:00 AM Eastern
-  const showTime = new Date("2025-06-18T04:00:00-04:00");
+//   const showTime = new Date("2025-06-18T04:00:00-04:00");
 
-  const shouldShowModal = !localStorage.getItem(modalSeenKey);
+//   const shouldShowModal = !localStorage.getItem(modalSeenKey);
 
-
-  if (shouldShowModal) {
-    setShowUpdateModal(true);
-    localStorage.setItem(modalSeenKey, "true");
-  }
-}, []);
+//   if (shouldShowModal) {
+//     setShowUpdateModal(true);
+//     localStorage.setItem(modalSeenKey, "true");
+//   }
+// }, []);
 
 
 
