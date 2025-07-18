@@ -49,7 +49,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>If a row/column is a decade, for example "Raced in the 2010's", only riders that raced a Supercross main event or qualified for the motos at a Motocross event
             in that decade will be eligible answers. </p>
         <p>If a row/column is &lt;18 Years Old 250 MX Winner, eligible riders are all riders who won a 250 MX Overall at 18 years of age or younger.</p>
-        <p>If a row/column is a Country or Continent, country of birth will be the determining factor for any multi-national riders.</p>   
+        <p>If a row/column is a Country or Continent, country of birth will be the determining factor for any multi-national riders.</p>
         <p><strong>Riders are available to be guessed in the game if they meet at least one of these criteria:</strong></p>
         <p>Raced at least one 250/450 SX Main Event since 1974.</p>
         <p>Raced at least one 125/250 SX Main Event since 1985.</p>
@@ -62,7 +62,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Raced at least one 250/450 SX Heat Race since 2003.</p>
         <p>Raced at least one 125/250 SX LCQ since 2003.</p>
         <p>Raced at least one 250/450 SX LCQ since 2003.</p>
-        <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are present in accessible historical records in that time frame.</p>
+        <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are guaranteed to be present in accessible historical records in that time frame.</p>
         <p>Email feedback@smxmuse.com or send me a DM on Instagram or X if you would like to provide any feedback about the game.</p>
     
     
