@@ -7,7 +7,7 @@
   "450 SX Triple Crown Main Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)",
   "250 SX Triple Crown Main Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND (m.TC1 = 1 OR m.TC2 = 1 OR m.TC3 = 1)",
   "250 SX LCQ Win (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 2 AND l.Result = 1",
-  "450 SX LCQ Win (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 1 AND l.Result = 1",
+  "450 SX LCQ Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_LCQS l ON r.RiderID = l.RiderID WHERE l.ClassID = 1 AND l.Result = 1",
   "5+ 450 SX Wins in One Season": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 1 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName",
   "5+ 250 SX Wins in One Season": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS s ON r.RiderID = s.RiderID JOIN Race_Table rt ON s.RaceID = rt.RaceID WHERE s.ClassID = 2 AND s.Result = 1 GROUP BY r.FullName, r.RiderID, rt.Year HAVING COUNT(*) >= 5 ORDER BY r.FullName",
   "1+ 250 SX Pole Positions (2007-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 2 AND q.Result = 1",
