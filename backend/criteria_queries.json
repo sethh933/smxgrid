@@ -48,7 +48,7 @@
   "Japan": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Japan'",
   "Brazil": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Brazil'",
   "United Kingdom": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('England', 'Wales', 'Northern Ireland', 'Scotland', 'United Kingdom')",
-  "European Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Finland', 'Italy', 'Netherlands', 'Germany', 'England', 'Lithuania', 'Switzerland', 'United Kingdom', 'Sweden', 'Ukraine', 'Czechia', 'Russia', 'Ireland', 'Latvia', 'France', 'Belgium', 'Spain', 'Denmark', 'Estonia', 'Scotland', 'Norway')",
+  "European Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Finland', 'Italy', 'Netherlands', 'Germany', 'England', 'Lithuania', 'Switzerland', 'United Kingdom', 'Sweden', 'Ukraine', 'Czechia', 'Russia', 'Ireland', 'Latvia', 'France', 'Belgium', 'Spain', 'Denmark', 'Estonia', 'Scotland', 'Norway', 'Portugal')",
   "South American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Ecuador', 'Bolivia', 'Brazil', 'Argentina', 'Colombia', 'Chile', 'Venezuela', 'Uruguay')",
   "Asian Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('South Korea', 'Philippines', 'Japan', 'Mongolia')",
   "Raced in the 1970s": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1970 AND 1979 UNION SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS mx ON r.RiderID = mx.RiderID JOIN Race_Table rt ON mx.RaceID = rt.RaceID WHERE rt.Year BETWEEN 1970 AND 1979",
