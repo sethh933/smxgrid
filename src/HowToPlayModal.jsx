@@ -43,6 +43,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Rarity score is the sum of your guess percentages. Any cell unanswered upon the game's completion adds 100 to the score.</p> 
         <p>The percentage displayed in each cell after a correct guess shows how often that rider has been selected for that cell.</p>
         <p>This game only uses results and data from AMA Supercross and Motocross.</p>
+        <p>In this game, "450" refers to the Premier class and "250" refers to the Lites class.</p>
         <p>If a row/column is a manufacturer, you can select a rider that has ridden for that manufacturer at any point in their career, 250 or 450 class.</p>
         <p>For example, if HON is a column and 250 MX Win is a row, Ken Roczen would be a valid answer because he has won a 250 MX overall and ridden for Honda at one point in his career, albeit not
             in the 250 class.</p>
@@ -62,7 +63,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Raced at least one 125/250 SX Heat Race since 2003.</p>
         <p>Raced at least one 250/450 SX Heat Race since 2003.</p>
         <p>Raced at least one 125/250 SX LCQ since 2003.</p>
-        <p>Raced at least one 250/450 SX LCQ since 2003.</p>
+        <p>Raced at least one 250/450 SX LCQ since 1976.</p>
         <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are guaranteed to be present in accessible historical records in that time frame.</p>
         <p>Email feedback@smxmuse.com or send me a DM on Instagram or X if you would like to provide any feedback about the game.</p>
     
