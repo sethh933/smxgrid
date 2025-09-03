@@ -1597,7 +1597,6 @@ def get_grid_archive(
                 ORDER BY g.PlayedAt DESC
             ) game
         """
-
         # ✅ Add TOP 20 if show_all is False
         top_clause = "" if show_all else "TOP 20"
 

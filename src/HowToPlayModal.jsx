@@ -49,6 +49,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
             in the 250 class.</p>
         <p>If a row/column is a decade, for example "Raced in the 2010's", only riders that raced a Supercross main event or qualified for the motos at a Motocross event
             in that decade are eligible answers. </p>
+        <p>Also, if a row/column is a decade, eligible answers are riders that raced in that ten year span. For example, 2000s is 2000-2009, 2010s is 2010-2019, etc.</p>
         <p>If a row/column matchup is a Country or Continent vs manufacturer, any riders that have appeared in timed qualifying or any form of race are eligible answers.</p>
         <p>If a row/column is &lt;18 Years Old 250 MX Winner, eligible riders are all riders who won a 250 MX Overall at 18 years of age or younger.</p>
         <p>If a row/column is a Country or Continent, country of birth will be the determining factor for any multi-national riders.</p>
