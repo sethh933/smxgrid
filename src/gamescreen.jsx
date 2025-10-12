@@ -28,6 +28,7 @@ function Game() {
   const [incorrectGuesses, setIncorrectGuesses] = useState({});
   const [gameSummary, setGameSummary] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  const isLocked = gameOver || guessesLeft === 0;
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [guestId, setGuestId] = useState(null);
   const { grid_id } = useParams();
@@ -371,6 +372,11 @@ useEffect(() => {
   }
 }, [gameOver]);
 
+// If the game becomes locked, make sure the input (if open) closes
+useEffect(() => {
+  if (isLocked) setSelectedCell(null);
+}, [isLocked]);
+
 // ✅ NEW: Automatically open summary modal when guesses hit 0
 useEffect(() => {
   if (guessesLeft === 0) {
@@ -442,17 +448,19 @@ const fetchGameSummary = async (autoOpen = false) => {
 };
 
   // Handle cell selection
+  // Handle cell selection
   const handleCellClick = (rowIndex, colIndex) => {
-    if (guessesLeft === 0) return; // Prevent input after game over
-  
-    // ✅ If already selected, close it. Otherwise, open it
-    setSelectedCell(prev =>
-      prev?.row === rowIndex && prev?.col === colIndex ? null : { row: rowIndex, col: colIndex }
-    );
-  
-    setRiderName("");
-    setSuggestions([]);
-  };
+  if (isLocked) return; // Prevent input after give-up OR completion
+
+  // If already selected, close it. Otherwise, open it
+  setSelectedCell(prev =>
+    prev?.row === rowIndex && prev?.col === colIndex ? null : { row: rowIndex, col: colIndex }
+  );
+
+  setRiderName("");
+  setSuggestions([]);
+};
+
   
 // ✅ Debounced autocomplete fetch
 const debouncedFetchSuggestions = useRef(
@@ -737,10 +745,10 @@ return (
 
                   {grid[rowIndex].map((cell, colIndex) => (
                     <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`grid-cell ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
-                    >
+  key={`${rowIndex}-${colIndex}`}
+  className={`grid-cell ${isLocked ? "locked" : ""} ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+  onClick={() => { if (!isLocked) handleCellClick(rowIndex, colIndex); }}
+>
                       {typeof cell === "object" && cell.image ? (
   <>
     <img src={cell.image} alt={cell.name} className="rider-image" />
@@ -794,16 +802,16 @@ return (
 </div>
 </div>
 
-        {selectedCell && (
-          <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
-            <input 
-              type="text" 
-              placeholder="Enter rider name..." 
-              className="input-box" 
-              value={riderName} 
-              onChange={handleInputChange} 
-              autoFocus 
-            />
+        {selectedCell && !isLocked && (
+  <div className={`input-container ${selectedCell ? '' : 'hidden'}`}>
+    <input 
+      type="text" 
+      placeholder="Enter rider name..." 
+      className="input-box" 
+      value={riderName} 
+      onChange={handleInputChange} 
+      autoFocus 
+    />
 
             {suggestions.length > 0 && (
               <div className="autocomplete-list">
@@ -817,15 +825,16 @@ return (
                           <span className={isIncorrect ? "incorrect-guess" : ""}>{suggestion}</span>
                           {!isIncorrect && (
                             <button
-                              className="select-button"
-                              disabled={submittingGuess}
-                              onClick={async () => {
-                                setRiderName(suggestion);
-                                await handleSubmit(suggestion);
-                              }}
-                            >
-                              Select
-                            </button>
+  className="select-button"
+  disabled={submittingGuess || isLocked}
+  onClick={async () => {
+    if (isLocked) return;
+    setRiderName(suggestion);
+    await handleSubmit(suggestion);
+  }}
+>
+  Select
+</button>
                           )}
                         </li>
                       );
