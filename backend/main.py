@@ -27,6 +27,7 @@ from typing import Optional
 with open("criteria_queries.json", "r", encoding="utf-8") as f:
     criteria_queries = json.load(f)
 
+
 pyodbc.pooling = True
 
 rider_cache = {}
@@ -36,6 +37,7 @@ env_path = Path(__file__).resolve().parent / ".env.local"
 load_dotenv(dotenv_path=env_path)
 
 # print("DEBUG - DB_SERVER:", os.getenv("DB_SERVER"))
+
 
 
 class LoginRequest(BaseModel):
@@ -57,7 +59,7 @@ app = FastAPI()
 # CORS Configuration: Allow both React development ports (5173 and 3000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://smxmusegrid.azurewebsites.net", "https://purple-plant-009b2850f.6.azurestaticapps.net", "https://smxmuse.com" "https://www.smxmuse.com"],  # Allow multiple origins
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://smxmusegrid.azurewebsites.net", "https://purple-plant-009b2850f.6.azurestaticapps.net", "https://smxmuse.com" ],  # Allow multiple origins
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
