@@ -58,7 +58,7 @@ app = FastAPI()
 # CORS Configuration: Allow both React development ports (5173 and 3000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://smxmusegrid.azurewebsites.net", "https://purple-plant-009b2850f.6.azurestaticapps.net", "https://smxmuse.com" ],  # Allow multiple origins
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000", "https://smxmusegrid.azurewebsites.net", "https://purple-plant-009b2850f.6.azurestaticapps.net", "https://smxmuse.com" "https://www.smxmuse.com"],  # Allow multiple origins
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -406,187 +406,135 @@ def resolve_all_user_ids(guest_id: UUID, conn) -> Tuple[List[int], List[str]]:
 
 @app.post("/register")
 def register_user(payload: RegisterRequest):
-    trace = str(uuid4())
-    guest_id = str(payload.guest_id).strip()
-    email = (payload.email or "").strip().lower()
-    username = (payload.username or "").strip().lower()
-    password = payload.password or ""
-    first_name = (payload.first_name or "").strip()
-    last_name = (payload.last_name or "").strip()
+    guest_id = str(payload.guest_id)
+    email = payload.email.lower()
+    username = payload.username.strip()
+    password = payload.password
+    first_name = payload.first_name.strip()
+    last_name = payload.last_name.strip()
+    hashed_pw = hash_password(password)
 
     if profanity.contains_profanity(username):
-        raise HTTPException(status_code=400, detail={"code": "SIGNUP_BAD_USERNAME", "message": "Inappropriate username", "trace": trace})
+        raise HTTPException(status_code=400, detail="Inappropriate username")
 
     if not is_valid_password(password):
-        raise HTTPException(status_code=400, detail={"code": "SIGNUP_WEAK_PASSWORD", "message": "Password must be at least 8 characters and contain a letter and a number", "trace": trace})
-
-    hashed_pw = hash_password(password)
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters and contain a letter and a number")
 
     conn = pyodbc.connect(CONN_STR)
     cursor = conn.cursor()
 
     try:
-        # --- 1) Ensure a shell row exists for this guest
-        cursor.execute("SELECT UserID, Username, HashedPassword FROM dbo.Users WHERE GuestID = ?", (guest_id,))
+        # ✅ Ensure this GuestID exists
+        cursor.execute("SELECT UserID FROM Users WHERE GuestID = ?", (guest_id,))
         guest_row = cursor.fetchone()
 
         if not guest_row:
-            cursor.execute("INSERT INTO dbo.Users (GuestID, CreatedAt) VALUES (?, GETDATE())", (guest_id,))
+            # ✅ Create a new row for this guest_id
+            cursor.execute("INSERT INTO Users (GuestID, CreatedAt) VALUES (?, GETDATE())", (guest_id,))
             conn.commit()
-            cursor.execute("SELECT UserID, Username, HashedPassword FROM dbo.Users WHERE GuestID = ?", (guest_id,))
+            cursor.execute("SELECT UserID FROM Users WHERE GuestID = ?", (guest_id,))
             guest_row = cursor.fetchone()
 
         if not guest_row:
-            raise HTTPException(status_code=500, detail={"code": "SIGNUP_NO_SHELL", "message": "Failed to create guest user for registration", "trace": trace})
+            raise HTTPException(status_code=500, detail="Failed to create guest user for registration")
 
-        # If this guest already has a completed registration (real account row),
-        # treat it as "already registered" (defensive: check password presence too).
-        if guest_row[1] is not None and guest_row[2] is not None:
-            raise HTTPException(status_code=400, detail={"code": "SIGNUP_ALREADY_REGISTERED", "message": "This guest ID already has a registered account", "trace": trace})
-
-        # --- 2) Enforce uniqueness only among REAL accounts
-        cursor.execute("""
-            SELECT 1 FROM dbo.Users
-            WHERE LOWER(Email) = ? AND HashedPassword IS NOT NULL
-        """, (email,))
+        # ✅ Block duplicate email across any guest
+        cursor.execute("SELECT 1 FROM Users WHERE Email = ? AND GuestID != ?", (email, guest_id))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail={"code": "SIGNUP_EMAIL_TAKEN", "message": "Email already in use", "trace": trace})
+            raise HTTPException(status_code=400, detail="Email already in use")
 
-        cursor.execute("""
-            SELECT 1 FROM dbo.Users
-            WHERE LOWER(Username) = ? AND HashedPassword IS NOT NULL
-        """, (username,))
+        # ✅ Block duplicate username across any guest
+        cursor.execute("SELECT 1 FROM Users WHERE Username = ? AND GuestID != ?", (username, guest_id))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail={"code": "SIGNUP_USERNAME_TAKEN", "message": "Username already taken", "trace": trace})
+            raise HTTPException(status_code=400, detail="Username already taken")
 
-        # (Optional) Log presence of shells with same identifiers, but allow proceed
-        # You can flip this to a hard error if desired.
-        cursor.execute("SELECT COUNT(*) FROM dbo.Users WHERE LOWER(Email) = ? AND HashedPassword IS NULL", (email,))
-        shell_emails = cursor.fetchone()[0] or 0
-        cursor.execute("SELECT COUNT(*) FROM dbo.Users WHERE LOWER(Username) = ? AND HashedPassword IS NULL", (username,))
-        shell_usernames = cursor.fetchone()[0] or 0
-        # If you want to surface in logs, you can print/log here.
+        # ✅ Check if this GuestID already has a completed registration
+        cursor.execute("SELECT Username FROM Users WHERE GuestID = ?", (guest_id,))
+        existing_username = cursor.fetchone()
+        if existing_username and existing_username[0] is not None:
+            raise HTTPException(status_code=400, detail="This guest ID already has a registered account")
 
-        # --- 3) Promote this guest shell to a real account (update-in-place)
+        # ✅ Update the existing guest row with full account info
         cursor.execute("""
-            UPDATE dbo.Users
+            UPDATE Users
             SET Email = ?, Username = ?, HashedPassword = ?, CreatedAt = GETDATE(),
                 FirstName = ?, LastName = ?
             WHERE GuestID = ?
         """, (email, username, hashed_pw, first_name, last_name, guest_id))
         conn.commit()
 
-        cursor.execute("SELECT UserID FROM dbo.Users WHERE GuestID = ?", (guest_id,))
+        cursor.execute("SELECT UserID FROM Users WHERE GuestID = ?", (guest_id,))
         user_id = cursor.fetchone()[0]
 
         token = create_access_token(data={"sub": str(user_id), "username": username})
-        return {"access_token": token, "token_type": "bearer", "trace": trace}
+        return {"access_token": token, "token_type": "bearer"}
 
-    except pyodbc.Error:
-        raise HTTPException(status_code=500, detail={"code": "SIGNUP_DB_ERROR", "message": "Database error", "trace": trace})
     finally:
         cursor.close()
         conn.close()
 
 
 
-from uuid import UUID, uuid4
-from fastapi import HTTPException
-import pyodbc
-
 @app.post("/login")
 def login_user(payload: LoginRequest):
-    trace = str(uuid4())  # for log correlation
-    identifier = (payload.email_or_username or "").strip().lower()
-    password = payload.password or ""
-    guest_id = getattr(payload, "guest_id", None)
+    identifier = payload.email_or_username.strip().lower()
+    password = payload.password
+    guest_id = payload.guest_id if hasattr(payload, "guest_id") else None
 
     if guest_id:
         try:
             guest_id = UUID(str(guest_id).strip())
         except ValueError:
-            guest_id = None  # ignore bad guest ids
+            guest_id = None
 
     conn = pyodbc.connect(CONN_STR)
     cursor = conn.cursor()
 
     try:
-        # --- 1) Count real vs shell rows for diagnostics
+        # Fetch user by email or username
         if "@" in identifier:
-            cursor.execute("""
-                SELECT
-                  SUM(CASE WHEN HashedPassword IS NOT NULL THEN 1 ELSE 0 END) AS RealCnt,
-                  SUM(CASE WHEN HashedPassword IS NULL THEN 1 ELSE 0 END)     AS ShellCnt
-                FROM dbo.Users WHERE LOWER(Email) = ?
-            """, (identifier,))
+            cursor.execute("SELECT UserID, HashedPassword, Username FROM Users WHERE LOWER(Email) = ?", (identifier,))
         else:
-            cursor.execute("""
-                SELECT
-                  SUM(CASE WHEN HashedPassword IS NOT NULL THEN 1 ELSE 0 END) AS RealCnt,
-                  SUM(CASE WHEN HashedPassword IS NULL THEN 1 ELSE 0 END)     AS ShellCnt
-                FROM dbo.Users WHERE LOWER(Username) = ?
-            """, (identifier,))
-        counts = cursor.fetchone()
-        real_cnt = (counts[0] or 0) if counts else 0
-        shell_cnt = (counts[1] or 0) if counts else 0
-
-        # --- 2) Fetch a real account row only (avoid shells)
-        if "@" in identifier:
-            cursor.execute("""
-                SELECT TOP 1 UserID, HashedPassword, Username
-                FROM dbo.Users
-                WHERE LOWER(Email) = ? AND HashedPassword IS NOT NULL
-                ORDER BY UserID DESC
-            """, (identifier,))
-        else:
-            cursor.execute("""
-                SELECT TOP 1 UserID, HashedPassword, Username
-                FROM dbo.Users
-                WHERE LOWER(Username) = ? AND HashedPassword IS NOT NULL
-                ORDER BY UserID DESC
-            """, (identifier,))
+            cursor.execute("SELECT UserID, HashedPassword, Username FROM Users WHERE LOWER(Username) = ?", (identifier,))
 
         row = cursor.fetchone()
+        if not row or not verify_password(password, row[1]):
+            raise HTTPException(status_code=401, detail="Invalid login credentials")
 
-        if not row:
-            # Precise failure reasons for observability
-            if real_cnt == 0 and shell_cnt > 0:
-                raise HTTPException(
-                    status_code=401,
-                    detail={"code": "AUTH_SHELL_COLLISION", "message": "Invalid login credentials", "trace": trace}
-                )
-            raise HTTPException(
-                status_code=401,
-                detail={"code": "AUTH_NO_USER", "message": "Invalid login credentials", "trace": trace}
-            )
+        user_id = row[0]
+        username = row[2]
 
-        user_id, hashed_pw, username = row[0], row[1], row[2]
-        if not verify_password(password, hashed_pw):
-            raise HTTPException(
-                status_code=401,
-                detail={"code": "AUTH_BAD_PASSWORD", "message": "Invalid login credentials", "trace": trace}
-            )
-
-        # --- 3) Ensure a shell exists for this device, but DON'T stamp username/email on shells
+        # 🔁 Merge blank guest account from this device
         if guest_id:
-            cursor.execute("SELECT 1 FROM dbo.Users WHERE GuestID = ?", (str(guest_id),))
-            exists = cursor.fetchone()
-            if not exists:
-                cursor.execute("INSERT INTO dbo.Users (GuestID, CreatedAt) VALUES (?, GETDATE())", (str(guest_id),))
+            cursor.execute("SELECT UserID, Username FROM Users WHERE GuestID = ?", (str(guest_id),))
+            guest_row = cursor.fetchone()
+
+            if guest_row:
+                guest_userid, guest_username = guest_row
+
+                if guest_username is None:
+                    cursor.execute("""
+                        UPDATE Users
+                        SET Username = ?, Email = NULL, HashedPassword = NULL,
+                            FirstName = NULL, LastName = NULL, CreatedAt = NULL
+                        WHERE GuestID = ?
+                    """, (username, str(guest_id)))
+                    conn.commit()
+            else:
+                cursor.execute("""
+                    INSERT INTO Users (GuestID, Username, CreatedAt)
+                    VALUES (?, ?, GETDATE())
+                """, (str(guest_id), username))
                 conn.commit()
 
-        minutes = 43200 if getattr(payload, "remember_me", False) else 120
+        minutes = 43200 if payload.remember_me else 120
         token = create_access_token(data={"sub": str(user_id), "username": username}, minutes=minutes)
 
-        return {"access_token": token, "token_type": "bearer", "username": username, "trace": trace}
+        return {"access_token": token, "token_type": "bearer", "username": username}
 
-    except pyodbc.Error:
-        # DB-level failure
-        raise HTTPException(status_code=500, detail={"code": "AUTH_DB_ERROR", "message": "Database error", "trace": trace})
     finally:
         cursor.close()
         conn.close()
-
 
 
 @app.get("/user-profile")
@@ -1824,8 +1772,3 @@ def refresh_cache():
         print("❌ ERROR in /refresh-cache:", str(e))
         print(traceback.format_exc())  # 🔍 full traceback to Azure logs
         raise HTTPException(status_code=500, detail=f"Internal cache refresh failure: {str(e)}")
-
-
-
-
-
