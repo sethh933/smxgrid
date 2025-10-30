@@ -38,7 +38,6 @@ load_dotenv(dotenv_path=env_path)
 # print("DEBUG - DB_SERVER:", os.getenv("DB_SERVER"))
 
 
-
 class LoginRequest(BaseModel):
     email_or_username: str
     password: str
