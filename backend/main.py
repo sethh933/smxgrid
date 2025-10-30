@@ -27,7 +27,6 @@ from typing import Optional
 with open("criteria_queries.json", "r", encoding="utf-8") as f:
     criteria_queries = json.load(f)
 
-
 pyodbc.pooling = True
 
 rider_cache = {}
