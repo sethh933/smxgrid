@@ -71,5 +71,10 @@
   "United States 3": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
   "United States A": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
   "United States B": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
-  "United States C": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'"
+  "United States C": "SELECT DISTINCT FullName FROM Rider_List WHERE Country = 'United States'",
+  "South or Central American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('Ecuador', 'Bolivia', 'Brazil', 'Argentina', 'Colombia', 'Chile', 'Venezuela', 'Uruguay', 'Puerto Rico', 'Guatemala', 'Honduras', 'Dominican Republic', 'Costa Rica')",
+  "North American Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country IN ('United States', 'Canada', 'Mexico')",
+  "450 SX Season Finale Winner": "WITH SeasonFinaleRaces AS ( SELECT Year, MAX(Round) AS LastRound FROM Race_Table WHERE SportID = 1 GROUP BY Year ) SELECT DISTINCT rl.FullName FROM SeasonFinaleRaces sfr JOIN Race_Table rt ON rt.Year = sfr.Year AND rt.Round = sfr.LastRound AND rt.SportID = 1 JOIN SX_MAINS sm ON sm.RaceID = rt.RaceID AND sm.ClassID = 1 AND sm.Result = 1 JOIN Rider_List rl ON rl.RiderID = sm.RiderID",
+  "Hangtown 450 MX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1 AND m.TrackID = 2"
+
 }

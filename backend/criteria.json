@@ -68,7 +68,11 @@
     "16 Year Old 250 SX Race Winner",
     "<18 Years Old 250 MX Winner",
     "Teenage 450 MX Winner",
-    "Only One Brand"
+    "Only One Brand",
+    "South or Central American Nationality",
+    "North American Nationality",
+    "450 SX Season Finale Winner",
+    "Hangtown 450 MX Winner"
   ],
 
 "invalid_pairings": {
@@ -78,7 +82,8 @@
     "Anaheim 1 450 SX Winner",
     "20+ 450 SX Wins",
     "2+ 450 SX Championships",
-    "10+ 450 SX Wins"
+    "10+ 450 SX Wins",
+    "450 SX Season Finale Winner"
   ],
   "1+ 250 SX Championships": [
     "250 SX Win",
@@ -119,6 +124,14 @@
   ],
   "South American Nationality": [
     "Brazil"
+  ],
+  "South or Central American Nationality": [
+    "Brazil",
+    "South American Nationality"
+  ],
+  "North American Nationality": [
+    "United States",
+    "Canada"
   ]
   
 }
