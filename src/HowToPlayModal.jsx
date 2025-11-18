@@ -53,6 +53,7 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>If a row/column matchup is a Country or Continent vs manufacturer, any riders that have appeared in timed qualifying or any form of race are eligible answers.</p>
         <p>If a row/column is &lt;18 Years Old 250 MX Winner, eligible riders are all riders who won a 250 MX Overall at 18 years of age or younger.</p>
         <p>If a row/column is a Country or Continent, country of birth will be the determining factor for any multi-national riders.</p>
+        <p>If a row/column is "Only One Manufacturer", eligible riders are those who have only rode one manufacturer in their AMA careers.</p>
         <p><strong>Riders are available to be guessed in the game if they meet at least one of these criteria:</strong></p>
         <p>Raced at least one 250/450 SX Main Event since 1974.</p>
         <p>Raced at least one 125/250 SX Main Event since 1985.</p>
@@ -62,10 +63,12 @@ const HowToPlayModal = ({ isOpen, onClose }) => {
         <p>Rode in timed qualifying in at least one MX event since 2009, 250 or 450.</p>
         <p>Rode in timed qualifying in at least one SX event since 2007, 250 or 450.</p>
         <p>Raced at least one 125/250 SX Heat Race since 2003.</p>
-        <p>Raced at least one 250/450 SX Heat Race since 2003.</p>
-        <p>Raced at least one 125/250 SX LCQ since 2003.</p>
-        <p>Raced at least one 250/450 SX LCQ since 1976.</p>
-        <p>*Historical MX data is incomplete from 1972-1997. Only riders who finished at least one moto inside the top 20 are guaranteed to be present in accessible historical records in that time frame.</p>
+        <p>Raced at least one 250/450 SX Heat Race since 1990**.</p>
+        <p>Raced at least one 125/250 SX LCQ since 1990**.</p>
+        <p>Raced at least one 250/450 SX LCQ since 1990**.</p>
+        <p>*Historical MX data is incomplete from 1972-1989. Most top 20 moto results are available through the 1980s and late 1970s but less so the earlier into the 1970s. Full 1-40 moto results
+          aren't available until 1990.</p>
+        <p>**Heat and LCQ winners are recorded in the database prior to 1990, however, full Heat and LCQ results aren't available until 1990.</p>
         <p>Email feedback@smxmuse.com or send me a DM on Instagram or X if you would like to provide any feedback about the game.</p>
     
     
