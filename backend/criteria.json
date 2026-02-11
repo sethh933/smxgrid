@@ -66,7 +66,7 @@
     "250 MX 1+ 1-1 Overall Wins",
     "450 MX 1+ 1-1 Overall Wins",
     "16 Year Old 250 SX Race Winner",
-    "<18 Years Old 250 MX Winner",
+    "≤18 Years Old 250 MX Winner",
     "Teenage 450 MX Winner",
     "Only One Manufacturer",
     "South or Central American Nationality",
@@ -103,7 +103,8 @@
   ],
   "450 MX Win": [
     "Red Bud 450 MX Winner",
-    "2+ 450 MX Championships"
+    "2+ 450 MX Championships",
+    "Hangtown 450 MX Winner"
   ],
   "250 MX Win": [
     "2+ 250 MX Championships"
