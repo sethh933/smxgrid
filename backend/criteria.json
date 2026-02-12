@@ -87,11 +87,15 @@
   ],
   "1+ 250 SX Championships": [
     "250 SX Win",
-    "2+ 250 SX Championships"
+    "2+ 250 SX Championships",
+    "1+ West Coast 250 SX Championships",
+    "1+ East Coast 250 SX Championships"
   ],
   "250 SX Win": [
     "250 SX East/West Showdown Win",
-    "2+ 250 SX Championships"
+    "2+ 250 SX Championships",
+    "1+ West Coast 250 SX Championships",
+    "1+ East Coast 250 SX Championships"
   ],
   "1+ 450 MX Championships": [
     "450 MX Win",
@@ -118,21 +122,26 @@
    "European Nationality": [
     "United Kingdom",
     "France",
-    "Spain"
+    "Spain",
+    "Non-USA Nationality"
   ],
   "Asian Nationality": [
-    "Japan"
+    "Japan",
+    "Non-USA Nationality"
   ],
   "South American Nationality": [
-    "Brazil"
+    "Brazil",
+    "Non-USA Nationality"
   ],
   "South or Central American Nationality": [
     "Brazil",
-    "South American Nationality"
+    "South American Nationality",
+    "Non-USA Nationality"
   ],
   "North American Nationality": [
     "United States",
-    "Canada"
+    "Canada",
+    "Non-USA Nationality"
   ]
   
 }
