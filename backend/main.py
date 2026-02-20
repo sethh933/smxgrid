@@ -1478,80 +1478,83 @@ def get_game_summary(request: Request):
         cursor.close()
         conn.close()
 
+from typing import Optional
 
-@app.get("/daily-leaderboard")
-def get_daily_leaderboard():
-    """Returns the top 20 lowest rarity scores for the active grid, showing 'Guest' for players without a username."""
+@app.get("/leaderboard")
+def get_leaderboard(grid_id: Optional[int] = None):
     try:
         with pyodbc.connect(CONN_STR) as conn:
             cursor = conn.cursor()
 
-            # ✅ Get active grid ID
-            cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active'")
-            result = cursor.fetchone()
-            if not result:
-                raise HTTPException(status_code=404, detail="No active grid found.")
-            grid_id = result[0]
+            # If no grid_id provided, default to active grid
+            if grid_id is None:
+                cursor.execute("SELECT GridID FROM dbo.DailyGrids WHERE Status = 'Active'")
+                result = cursor.fetchone()
+                if not result:
+                    raise HTTPException(status_code=404, detail="No active grid found.")
+                grid_id = result[0]
 
-            # ✅ Execute deduplicated rarity score query
-            # ✅ Execute deduplicated rarity score query using precomputed rarity
             cursor.execute("""
-    WITH GameSessions AS (
-        SELECT 
-            g.GameID,
-            g.GridID,
-            g.PlayedAt,
-            u.Username,
-            g.GuestID,
-            COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
-            CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
-        FROM dbo.Games g
-        LEFT JOIN dbo.Users u ON g.UserID = u.UserID
-        WHERE g.Completed = 1 AND g.GridID = ?
-    ),
-    LatestGamePerPlayer AS (
-        SELECT GameID, PlayerKey
-        FROM (
-            SELECT GameID, PlayerKey,
-                   ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
-            FROM GameSessions
-        ) x
-        WHERE rn = 1
-    ),
-    RarityScoreRaw AS (
-        SELECT 
-            ug.GameID,
-            SUM(rs.GuessPercentage) + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))) AS RarityScore
-        FROM dbo.UserGuesses ug
-        JOIN dbo.RarityGuessStats rs
-          ON ug.GridID = rs.GridID
-         AND ug.RowCriterion = rs.RowCriterion
-         AND ug.ColumnCriterion = rs.ColumnCriterion
-         AND ug.FullName = rs.FullName
-        WHERE ug.GridID = ? AND ug.IsCorrect = 1
-        GROUP BY ug.GameID
-    )
-    SELECT TOP 20 
-        gs.DisplayName AS Username,
-        ROUND(r.RarityScore, 2) AS RarityScore
-    FROM RarityScoreRaw r
-    JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
-    JOIN GameSessions gs ON r.GameID = gs.GameID
-    ORDER BY RarityScore ASC
-""", (grid_id, grid_id))
+                WITH GameSessions AS (
+                    SELECT 
+                        g.GameID,
+                        g.GridID,
+                        g.PlayedAt,
+                        u.Username,
+                        g.GuestID,
+                        COALESCE(u.Username, CAST(g.GuestID AS VARCHAR(100))) AS PlayerKey,
+                        CASE WHEN u.Username IS NOT NULL THEN u.Username ELSE 'Guest' END AS DisplayName
+                    FROM dbo.Games g
+                    LEFT JOIN dbo.Users u ON g.UserID = u.UserID
+                    WHERE g.Completed = 1 AND g.GridID = ?
+                ),
+                LatestGamePerPlayer AS (
+                    SELECT GameID, PlayerKey
+                    FROM (
+                        SELECT GameID, PlayerKey,
+                               ROW_NUMBER() OVER (PARTITION BY PlayerKey ORDER BY PlayedAt DESC) AS rn
+                        FROM GameSessions
+                    ) x
+                    WHERE rn = 1
+                ),
+                RarityScoreRaw AS (
+                    SELECT 
+                        ug.GameID,
+                        SUM(rs.GuessPercentage) 
+                        + (100 * (9 - COUNT(DISTINCT ug.RowCriterion + '-' + ug.ColumnCriterion))) 
+                        AS RarityScore
+                    FROM dbo.UserGuesses ug
+                    JOIN dbo.RarityGuessStats rs
+                      ON ug.GridID = rs.GridID
+                     AND ug.RowCriterion = rs.RowCriterion
+                     AND ug.ColumnCriterion = rs.ColumnCriterion
+                     AND ug.FullName = rs.FullName
+                    WHERE ug.GridID = ? AND ug.IsCorrect = 1
+                    GROUP BY ug.GameID
+                )
+                SELECT TOP 20 
+                    gs.DisplayName AS Username,
+                    ROUND(r.RarityScore, 2) AS RarityScore
+                FROM RarityScoreRaw r
+                JOIN LatestGamePerPlayer lg ON r.GameID = lg.GameID
+                JOIN GameSessions gs ON r.GameID = gs.GameID
+                ORDER BY RarityScore ASC
+            """, (grid_id, grid_id))
 
             rows = cursor.fetchall()
+
             leaderboard = [
                 {"username": row[0], "rarity_score": float(row[1])}
                 for row in rows
             ]
 
-            return leaderboard
+            return {
+                "grid_id": grid_id,
+                "leaderboard": leaderboard
+            }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating leaderboard: {str(e)}")
-
-
     
 @app.get("/grid-archive")
 def get_grid_archive(

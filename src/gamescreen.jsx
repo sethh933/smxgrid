@@ -38,7 +38,7 @@ function Game() {
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
   const [submittingGuess, setSubmittingGuess] = useState(false);
   const [isLeaderboardOpen, setLeaderboardOpen] = useState(false);
-  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardData, setLeaderboardData] = useState(null);
   const [hydrated, setHydrated] = useState(false); // 🔄 Track whether backend/local restore is complete
   const [hasOpenedSummary, setHasOpenedSummary] = useState(false);
   const [readyForSummaryPopup, setReadyForSummaryPopup] = useState(false);
@@ -671,7 +671,12 @@ const handleGiveUp = async () => {
 
 const fetchLeaderboard = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/daily-leaderboard`);
+    const currentGridId = gridId; // this already tracks active OR archive grid
+
+    const response = await axios.get(
+      `${API_BASE_URL}/leaderboard?grid_id=${currentGridId}`
+    );
+
     setLeaderboardData(response.data);
     setLeaderboardOpen(true);
   } catch (error) {

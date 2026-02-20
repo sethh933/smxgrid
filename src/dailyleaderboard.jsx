@@ -23,13 +23,13 @@ export default function LeaderboardModal({ open, onClose, leaderboardData }) {
 }, []);
 
 
-    if (!open) return null;
+    if (!open || !leaderboardData) return null;
 
     return (
         <div className="leaderboard-modal-overlay">
             <div className="leaderboard-modal-content" ref={modalRef}>
                 <button className="summary-close-button" onClick={onClose}>X</button>
-                <h2>Daily Grid Rarity Leaderboard</h2>
+                <h2>Grid {leaderboardData.grid_id} Rarity Leaderboard</h2>
                 <h3>Top 20 Scores</h3>
                 <table className="w-full text-sm mt-4 leaderboard-table">
                     <thead className="bg-gray-800 text-white">
@@ -40,7 +40,7 @@ export default function LeaderboardModal({ open, onClose, leaderboardData }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {leaderboardData.map((entry, index) => (
+                        {leaderboardData.leaderboard.map((entry, index) => (
                             <tr key={index} className="border-b border-gray-700">
                                 <td className="py-1 px-3">{index + 1}</td>
                                 <td className="py-1 px-3">{entry.username || "Guest"}</td>
