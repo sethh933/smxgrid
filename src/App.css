@@ -58,8 +58,8 @@ body {
   line-height: 1.3;
 
   white-space: normal;        /* 👈 REQUIRED */
-  word-break: break-word;
-  overflow-wrap: break-word;    /* 👈 EXTRA SAFETY */
+  word-break: normal;
+  overflow-wrap: normal;    /* 👈 EXTRA SAFETY */
 }
 
 /* Grid Layout */
