@@ -320,6 +320,7 @@ body {
   font-size: 22px;
   font-weight: bold;
   color: white;
+  box-sizing: border-box;
 }
 
 
@@ -605,61 +606,102 @@ body.modal-open, html.modal-open {
 }
 
 /* 💻 Responsive Grid Scaling for Laptops & High-DPI Screens */
-@media screen and (min-width: 601px) and (max-width: 1600px) {
+/* ============================= */
+/* 📱➡️ TABLET (NEW) */
+/* ============================= */
+@media (min-width: 601px) and (max-width: 900px) {
+
+  .game-layout {
+    flex-direction: column;
+    gap: 25px;
+    margin-top: -100px;
+  }
+
   .grid-cell,
   .header-cell,
-  .empty-cell {
-    width: clamp(100px, 11vw, 180px);
-    height: clamp(100px, 11vw, 180px);
-    font-size: clamp(10px, 1vw, 16px);
+  .empty-cell,
+  .side-panel-container {
+    width: clamp(90px, 14vw, 130px);
+    height: clamp(90px, 14vw, 130px);
+    font-size: clamp(10px, 1.5vw, 14px);
+  }
+
+  .grid-number-cell {
+    width: clamp(90px, 14vw, 130px);
+    height: clamp(90px, 14vw, 130px);
+    font-size: clamp(10px, 1.5vw, 14px);
   }
 
   .rider-name-banner {
-    font-size: clamp(9px, 1vw, 14px);
-    padding: 3px 0;
-  }
-
-  .side-panel-container {
-    width: clamp(100px, 11vw, 180px);
-    height: clamp(100px, 11vw, 180px);
-  }
-
-  .guess-counter {
-    font-size: clamp(20px, 2vw, 32px);
-  }
-
-  .guess-counter-label {
-    font-size: clamp(10px, 1.2vw, 14px);
+    font-size: clamp(9px, 1.2vw, 12px);
   }
 
   .input-container {
-    top: 100px;
-    left: 50%;
-    width: clamp(250px, 40vw, 400px);
-    transform: translateX(-50%);
-  }
-
-  .input-box {
-    font-size: clamp(12px, 1vw, 16px);
-    width: 100%;
-  }
-
-  .top-banner {
-    font-size: clamp(18px, 2vw, 22px);
+    top: 120px;
+    width: 90%;
   }
 
   .banner-left {
-    margin-left: clamp(40px, 5vw, 95px);
+    margin-left: 0;
   }
 
   .social-icons {
-    margin-right: clamp(80px, 7vw, 275px);
-  }
-
-  .grid-wrapper {
-    margin-top: 40px;
+    margin-right: 0;
   }
 }
+
+@media (max-width: 900px) {
+  .top-banner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .banner-left {
+    margin-left: 0;
+  }
+
+  .social-icons {
+    margin-right: 0;
+  }
+}
+
+/* ============================= */
+/* 💻 SMALL LAPTOP (FIXED) */
+/* ============================= */
+@media (min-width: 901px) and (max-width: 1300px) {
+
+  .grid-cell,
+  .header-cell,
+  .empty-cell,
+  .side-panel-container {
+    width: clamp(120px, 10vw, 160px);
+    height: clamp(120px, 10vw, 160px);
+  }
+
+  .grid-number-cell {
+    width: clamp(120px, 10vw, 160px);
+    height: clamp(120px, 10vw, 160px);
+  }
+
+  .rider-name-banner {
+    font-size: clamp(10px, 1vw, 13px);
+  }
+
+  .game-layout {
+    gap: 30px;
+    margin-top: -140px;
+  }
+
+  .banner-left {
+    margin-left: clamp(20px, 3vw, 60px);
+  }
+
+  .social-icons {
+    margin-right: clamp(40px, 5vw, 120px);
+  }
+}
+
 
 @media screen and (min-width: 1601px) {
   .grid-cell,
