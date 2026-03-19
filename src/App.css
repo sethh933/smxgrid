@@ -311,16 +311,18 @@ body {
 /* ✅ Full-Width Banner with Proper Font Size & Logo Alignment */
 .top-banner {
   width: 100%;
-  max-width: 1400px; /* contain content */
+  max-width: 1400px;
   margin: 0 auto; 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 40px;
+
+  flex-wrap: wrap;        /* ✅ ADD THIS */
+  padding: 8px 20px;      /* ✅ CHANGE THIS */
+
   font-size: 22px;
   font-weight: bold;
   color: white;
-  box-sizing: border-box;
 }
 
 
@@ -741,11 +743,11 @@ body.modal-open, html.modal-open {
     font-size: 22px;
   }
 
-  .banner-left {
-    margin-left: 95px;
-  }
+.banner-left {
+  margin-left: 0;
+}
 
-  .social-icons {
-    margin-right: 275px;
-  }
+.social-icons {
+  margin-right: 0;
+}
 }
