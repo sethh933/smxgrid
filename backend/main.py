@@ -774,22 +774,14 @@ def start_game(request: Request):
                 }
 
             # ✅ Insert new game
-            cursor.execute("""
-                INSERT INTO dbo.Games (UserID, GuestID, GridID, GuessesMade, Completed, PlayedAt)
-                OUTPUT INSERTED.GameID
-                VALUES (?, ?, ?, 0, 0, GETDATE());
-            """, (user_id, str(guest_id), grid_id))
-            game_id = cursor.fetchone()[0]
-
-            conn.commit()
-
+            # ✅ No game yet — wait for first guess
             return {
-                "message": "New game created",
-                "grid_id": grid_id,
-                "guest_id": str(guest_id),
-                "game_id": game_id,
-                "completed": False
-            }
+    "message": "No game started yet",
+    "grid_id": grid_id,
+    "guest_id": str(guest_id),
+    "game_id": None,
+    "completed": False
+}
 
         finally:
             cursor.close()
@@ -1041,8 +1033,13 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             """, (grid_id, *user_ids, *guest_ids))
             row = cursor.fetchone()
             if not row:
-                raise HTTPException(status_code=404, detail="Game not found.")
-            game_id = row[0]
+    # No game yet — that's fine
+                game_id = None
+                guess_rows = []
+            else:
+                game_id = row[0]
+                cursor.execute("SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect FROM dbo.UserGuesses WHERE GameID = ?", (game_id,))
+                guess_rows = cursor.fetchall()
 
             # ✅ Get previous guesses
             cursor.execute("SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect FROM dbo.UserGuesses WHERE GameID = ?", (game_id,))
