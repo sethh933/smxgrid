@@ -42,6 +42,10 @@
   box-sizing: border-box;
 }
 
+.profile-rider-cell-link {
+  cursor: pointer;
+}
+
 .profile-rider-cell img {
   width: 100%;
   height: 100%;

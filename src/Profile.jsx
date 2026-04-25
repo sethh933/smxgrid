@@ -5,6 +5,7 @@ import SignUpModal from "./SignUpModal";
 import LoginModal from "./LoginModal";
 import "./Profile.css";
 import "./SummaryModal.css";
+import { buildRiderProfileUrl } from "./riderProfile";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -86,7 +87,22 @@ const Profile = () => {
           {[0, 1, 2].map((row) => (
             <div className="profile-grid-row" key={row}>
               {displayStats.top_riders.slice(row * 3, row * 3 + 3).map((r, i) => (
-                <div key={i} className="profile-rider-cell">
+                <div
+                  key={i}
+                  className={`profile-rider-cell ${r.name ? "profile-rider-cell-link" : ""}`}
+                  onClick={() => {
+                    if (!r.name) {
+                      return;
+                    }
+
+                    const profileUrl = buildRiderProfileUrl(r.name, r.rider_id);
+                    if (!profileUrl) {
+                      return;
+                    }
+
+                    window.open(profileUrl, "_blank", "noopener,noreferrer");
+                  }}
+                >
                   {r.correct_guesses && <div className="guess-percentage">{r.correct_guesses}x</div>}
                   {r.image_url ? (
                     <img src={r.image_url} alt={r.name} className="profile-rider-image" />

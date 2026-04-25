@@ -119,6 +119,10 @@ body {
   background-color: #444;
 }
 
+.grid-cell-link {
+  cursor: pointer;
+}
+
 /* Selected Cell Highlight */
 .selected {
   background-color: #f39c12;

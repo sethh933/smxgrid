@@ -56,10 +56,21 @@ class GuessRequest(BaseModel):
 
 # Initialize FastAPI app
 app = FastAPI()
-# CORS Configuration: Allow both React development ports (5173 and 3000)
+# CORS Configuration: Allow local React/Vite development ports
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174", "http://localhost:3000", "http://127.0.0.1:5174", "http://127.0.0.1:3000", "https://smxmusegrid.azurewebsites.net", "https://purple-plant-009b2850f.6.azurestaticapps.net", "https://smxmuse.com", "https://grids.smxmuse.com"],  # Allow multiple origins
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:3000",
+        "https://smxmusegrid.azurewebsites.net",
+        "https://purple-plant-009b2850f.6.azurestaticapps.net",
+        "https://smxmuse.com",
+        "https://grids.smxmuse.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -648,12 +659,13 @@ def get_user_profile(username: str):
             SELECT TOP 9 
                 g.FullName,
                 COUNT(*) AS CorrectGuesses,
-                MAX(r.ImageURL) AS ImageURL
+                MAX(r.ImageURL) AS ImageURL,
+                g.RiderID
             FROM UserGuesses g
-            JOIN Rider_List r ON g.FullName = r.FullName
+            JOIN Rider_List r ON g.RiderID = r.RiderID
             WHERE g.IsCorrect = 1
               AND (g.UserID IN ({user_placeholders}) OR g.GuestID IN ({guest_placeholders}))
-            GROUP BY g.FullName
+            GROUP BY g.FullName, g.RiderID
             ORDER BY COUNT(*) DESC;
         """, all_params)
         rider_rows = cursor.fetchall()
@@ -662,7 +674,8 @@ def get_user_profile(username: str):
             {
                 "name": row[0],
                 "correct_guesses": row[1],
-                "image_url": row[2] or ""
+                "image_url": row[2] or "",
+                "rider_id": row[3]
             }
             for row in rider_rows
         ]
@@ -842,7 +855,7 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
         game_id, guesses_made, completed = game_row
 
         cursor.execute("""
-            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL
+            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL, RiderID
             FROM dbo.UserGuesses
             WHERE GameID = ?
         """, (game_id,))
@@ -853,8 +866,9 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
             "column": col,
             "rider": rider,
             "is_correct": bool(correct),
-            "image_url": image
-        } for row, col, rider, correct, image in guesses]
+            "image_url": image,
+            "rider_id": rider_id
+        } for row, col, rider, correct, image, rider_id in guesses]
 
         return {
             "status": "completed" if completed else "in_progress",
@@ -1118,16 +1132,22 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
         state["remaining_attempts"] -= 1
         guesses_made += 1
 
-        image_url = None
-        if is_correct:
-            cursor.execute("SELECT ImageURL FROM Rider_List WHERE FullName = ?", (guess.rider,))
-            result = cursor.fetchone()
-            image_url = result[0] if result else None
+        cursor.execute(
+            "SELECT TOP 1 RiderID, ImageURL FROM Rider_List WHERE FullName = ?",
+            (guess.rider,),
+        )
+        result = cursor.fetchone()
+        if not result:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Rider '{guess.rider}' was not found in Rider_List.",
+            )
+        rider_id, image_url = result
 
         cursor.execute("""
-            INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?);
-        """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct), image_url))
+            INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL, RiderID)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?);
+        """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct), image_url, rider_id))
         cursor.execute("""
             UPDATE dbo.Games
             SET GuessesMade = GuessesMade + 1,
@@ -1179,6 +1199,7 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             "message": f"✅ '{guess.rider}' placed in {guess.row} | {guess.column}!",
             "remaining_attempts": state["remaining_attempts"],
             "rider": guess.rider,
+            "rider_id": rider_id,
             "image_url": image_url,
             "guess_percentage": guess_percentage
         }
@@ -1358,17 +1379,18 @@ def get_game_summary(request: Request):
         cursor.execute("""
             WITH CorrectGuesses AS (
                 SELECT 
-                    g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, 
+                    g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, g.RiderID,
                     COUNT(*) AS GuessCount,
                     RANK() OVER (PARTITION BY g.GridID, g.RowCriterion, g.ColumnCriterion ORDER BY COUNT(*) DESC) AS Rank
                 FROM dbo.UserGuesses g
                 WHERE g.GridID = ? AND g.IsCorrect = 1
-                GROUP BY g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName
+                GROUP BY g.GridID, g.RowCriterion, g.ColumnCriterion, g.FullName, g.RiderID
             )
             SELECT cg.RowCriterion, cg.ColumnCriterion, cg.FullName, cg.GuessCount, rl.imageurl,
-                   (cg.GuessCount * 100.0 / NULLIF(total.TotalGuesses, 0)) AS GuessPercentage
+                   (cg.GuessCount * 100.0 / NULLIF(total.TotalGuesses, 0)) AS GuessPercentage,
+                   cg.RiderID
             FROM CorrectGuesses cg
-            LEFT JOIN Rider_List rl ON cg.FullName = rl.FullName
+            LEFT JOIN Rider_List rl ON cg.RiderID = rl.RiderID
             JOIN (
                 SELECT GridID, RowCriterion, ColumnCriterion, SUM(GuessCount) AS TotalGuesses
                 FROM CorrectGuesses
@@ -1386,7 +1408,8 @@ def get_game_summary(request: Request):
                 "col": row[1],
                 "rider": row[2],
                 "guess_percentage": round(row[5] if row[5] else 0, 2),
-                "image": row[4]
+                "image": row[4],
+                "rider_id": row[6]
             }
             for row in most_guessed if row[2] and row[2] != ""
         ]

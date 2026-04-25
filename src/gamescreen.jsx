@@ -12,6 +12,7 @@ import LeaderboardModal from './dailyleaderboard.jsx';
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import UpdateModal from "./updatemodal";
+import { buildRiderProfileUrl } from "./riderProfile";
 
 
 
@@ -292,7 +293,8 @@ const restoreGameFromBackend = async () => {
             restoredGrid[rowIndex][colIndex] = {
               name: guess.rider,
               image: guess.image_url || "",
-              guess_percentage: 0
+              guess_percentage: 0,
+              profile_url: buildRiderProfileUrl(guess.rider, guess.rider_id)
             };
             restoredUsedGuesses.push(guess.rider);
           } else {
@@ -601,6 +603,7 @@ setGuessesLeft(response.data.remaining_attempts);
         name: selectedRider,
         image: response.data.image_url || "",
         guess_percentage: response.data.guess_percentage || 0,
+        profile_url: buildRiderProfileUrl(selectedRider, response.data.rider_id),
       };
       return newGrid;
     });
@@ -751,8 +754,17 @@ return (
                   {grid[rowIndex].map((cell, colIndex) => (
                     <div
   key={`${rowIndex}-${colIndex}`}
-  className={`grid-cell ${isLocked ? "locked" : ""} ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
-  onClick={() => { if (!isLocked) handleCellClick(rowIndex, colIndex); }}
+  className={`grid-cell ${cell?.profile_url ? "grid-cell-link" : ""} ${isLocked ? "locked" : ""} ${selectedCell?.row === rowIndex && selectedCell?.col === colIndex ? "selected" : ""}`}
+  onClick={() => {
+    if (cell?.profile_url) {
+      window.open(cell.profile_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (!isLocked) {
+      handleCellClick(rowIndex, colIndex);
+    }
+  }}
 >
                       {typeof cell === "object" && cell.image ? (
   <>

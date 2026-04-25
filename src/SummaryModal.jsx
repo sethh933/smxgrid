@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./SummaryModal.css";
+import { buildRiderProfileUrl } from "./riderProfile";
 
 const SummaryModal = ({
     isOpen,
@@ -137,7 +138,22 @@ https://smxmuse.com/`;
 </div>
 
                                 {(mostGuessedGrid[rowIndex] || []).map((cell, colIndex) => (
-                                    <div key={`${rowIndex}-${colIndex}`} className="summary-cell rider-cell">
+                                    <div
+                                        key={`${rowIndex}-${colIndex}`}
+                                        className={`summary-cell rider-cell ${cell?.rider ? "rider-cell-link" : ""}`}
+                                        onClick={() => {
+                                            if (!cell?.rider) {
+                                                return;
+                                            }
+
+                                            const profileUrl = buildRiderProfileUrl(cell.rider, cell.rider_id);
+                                            if (!profileUrl) {
+                                                return;
+                                            }
+
+                                            window.open(profileUrl, "_blank", "noopener,noreferrer");
+                                        }}
+                                    >
                                         <div className="guess-percentage">{cell.guess_percentage || 0}%</div>
                                         {cell.image ? (
                                             <img src={cell.image} alt={cell.rider} className="rider-image" />
