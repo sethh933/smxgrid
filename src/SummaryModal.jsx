@@ -64,13 +64,13 @@ const SummaryModal = ({
             row.map(cell => (cell && cell.name ? "🟩" : "⬛")).join("")
         ).join("\n");
 
-        return `🏁 SMXMuse Grid ${gridId} ${correctGuesses}/${totalCells}:
+        return `🏁  Grid ${gridId} ${correctGuesses}/${totalCells}:
 Rarity: ${rarityScore}
 ${correctGuesses === totalCells ? "Final Grid:" : ""}
 ${gridEmoji}
 @smxmuse
 Play at:
-https://smxmuse.com/`;
+https://grids.smxmuse.com/`;
     };
 
     // ✅ Function to copy text to clipboard
