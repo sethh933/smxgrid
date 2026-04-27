@@ -22,6 +22,8 @@ from better_profanity import profanity
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, Query
 from typing import Optional
+import smtplib
+from email.message import EmailMessage
 
 # ✅ Load criteria_queries
 with open("criteria_queries.json", "r", encoding="utf-8") as f:
@@ -45,6 +47,15 @@ class LoginRequest(BaseModel):
     password: str
     remember_me: bool = False
     guest_id: Optional[str] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    identifier: str
+
+
+class ResetPasswordConfirmRequest(BaseModel):
+    token: str
+    new_password: str
 
 
 # ✅ Define Pydantic model for request validation
@@ -113,6 +124,41 @@ def create_access_token(data: dict, minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES):
     expire = datetime.utcnow() + timedelta(minutes=minutes)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_reset_token(user_id: int, minutes: int = 30):
+    return create_access_token(
+        data={"sub": str(user_id), "purpose": "password_reset"},
+        minutes=minutes,
+    )
+
+
+def get_public_app_url() -> str:
+    return os.getenv("PUBLIC_APP_URL", "https://grids.smxmuse.com").rstrip("/")
+
+
+def send_reset_email(to_email: str, reset_link: str):
+    msg = EmailMessage()
+    msg["Subject"] = "Reset your smxmuse password"
+    msg["From"] = os.getenv("SMTP_FROM_EMAIL")
+    msg["To"] = to_email
+    msg.set_content(
+        "Click the link below to reset your password:\n\n"
+        f"{reset_link}\n\n"
+        "If you did not request this, you can ignore this email."
+    )
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", "465"))
+    smtp_user = os.getenv("SMTP_FROM_EMAIL")
+    smtp_pass = os.getenv("SMTP_FROM_PASSWORD")
+
+    if not all([smtp_host, smtp_user, smtp_pass, to_email]):
+        raise RuntimeError("SMTP configuration is incomplete")
+
+    with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -543,6 +589,114 @@ def login_user(payload: LoginRequest):
         token = create_access_token(data={"sub": str(user_id), "username": username}, minutes=minutes)
 
         return {"access_token": token, "token_type": "bearer", "username": username}
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest):
+    identifier = payload.identifier.strip().lower()
+    if not identifier:
+        raise HTTPException(status_code=400, detail="Email or username is required")
+
+    conn = pyodbc.connect(CONN_STR)
+    cursor = conn.cursor()
+
+    try:
+        if "@" in identifier:
+            cursor.execute(
+                """
+                SELECT TOP 1 UserID, Email
+                FROM dbo.Users
+                WHERE LOWER(Email) = ?
+                  AND HashedPassword IS NOT NULL
+                  AND Email IS NOT NULL
+                ORDER BY UserID DESC
+                """,
+                (identifier,),
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT TOP 1 UserID, Email
+                FROM dbo.Users
+                WHERE LOWER(Username) = ?
+                  AND HashedPassword IS NOT NULL
+                  AND Email IS NOT NULL
+                ORDER BY UserID DESC
+                """,
+                (identifier,),
+            )
+
+        row = cursor.fetchone()
+
+        # Avoid account enumeration: always return the same success payload.
+        if not row:
+            return {"message": "If that account exists, a reset link has been sent."}
+
+        user_id, email = row
+        reset_token = create_reset_token(user_id)
+        reset_link = f"{get_public_app_url()}/reset-password-confirm?token={reset_token}"
+        send_reset_email(email, reset_link)
+
+        return {"message": "If that account exists, a reset link has been sent."}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logging.exception("Forgot-password failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Unable to send reset email right now.")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.post("/reset-password-confirm")
+def reset_password_confirm(payload: ResetPasswordConfirmRequest):
+    try:
+        token_data = jwt.decode(payload.token, SECRET_KEY, algorithms=[ALGORITHM])
+        if token_data.get("purpose") != "password_reset":
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+        user_id = int(token_data.get("sub"))
+    except HTTPException:
+        raise
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    if not is_valid_password(payload.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 8 characters and include a letter and number.",
+        )
+
+    conn = pyodbc.connect(CONN_STR)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT TOP 1 UserID
+            FROM dbo.Users
+            WHERE UserID = ?
+              AND HashedPassword IS NOT NULL
+            """,
+            (user_id,),
+        )
+        existing_user = cursor.fetchone()
+        if not existing_user:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        hashed_pw = hash_password(payload.new_password)
+        cursor.execute(
+            "UPDATE dbo.Users SET HashedPassword = ? WHERE UserID = ?",
+            (hashed_pw, user_id),
+        )
+        conn.commit()
+
+        return {"message": "Password reset successful"}
 
     finally:
         cursor.close()
