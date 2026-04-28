@@ -155,10 +155,47 @@ def send_reset_email(to_email: str, reset_link: str):
 
     if not all([smtp_host, smtp_user, smtp_pass, to_email]):
         raise RuntimeError("SMTP configuration is incomplete")
+    timeout_seconds = int(os.getenv("SMTP_TIMEOUT_SECONDS", "12"))
+    attempts = []
 
-    with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
-        server.login(smtp_user, smtp_pass)
-        server.send_message(msg)
+    # Private Email supports 465/SSL and 587/STARTTLS. We try the configured
+    # transport first, then fall back to the alternate TLS mode if needed.
+    configured_mode = "starttls" if smtp_port == 587 else "ssl"
+    attempts.append((smtp_host, smtp_port, configured_mode))
+    if smtp_port != 465:
+        attempts.append((smtp_host, 465, "ssl"))
+    if smtp_port != 587:
+        attempts.append((smtp_host, 587, "starttls"))
+    else:
+        attempts.append((smtp_host, 587, "starttls"))
+
+    last_error = None
+    for host, port, mode in attempts:
+        try:
+            if mode == "ssl":
+                with smtplib.SMTP_SSL(host, port, timeout=timeout_seconds) as server:
+                    server.login(smtp_user, smtp_pass)
+                    server.send_message(msg)
+                    return
+            else:
+                with smtplib.SMTP(host, port, timeout=timeout_seconds) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(smtp_user, smtp_pass)
+                    server.send_message(msg)
+                    return
+        except Exception as exc:
+            last_error = exc
+            logging.warning(
+                "SMTP attempt failed via %s:%s using %s: %s",
+                host,
+                port,
+                mode,
+                exc,
+            )
+
+    raise RuntimeError(f"All SMTP delivery attempts failed: {last_error}")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
