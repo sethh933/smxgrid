@@ -40,6 +40,7 @@
   "SUZ": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID WHERE rb.Brand = 'SUZ'",
   "KAW": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID WHERE rb.Brand = 'KAW'",
   "GAS": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID WHERE rb.Brand = 'GAS'",
+  "TRI": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN RiderBrandList rb ON r.RiderID = rb.RiderID WHERE rb.Brand = 'TRI'",
   "Australia": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'Australia'",
   "France": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'France'",
   "United States": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country = 'United States'",
