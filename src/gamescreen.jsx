@@ -75,7 +75,8 @@ function Game() {
     "YAM": "https://assets.liveracemedia.com/manufacturers/primary/yamaha.png",
     "KAW": "https://assets.liveracemedia.com/manufacturers/primary/kawasaki.png",
     "GAS": "https://assets.liveracemedia.com/manufacturers/primary/gasgas.png",
-    "SUZ": "https://assets.liveracemedia.com/manufacturers/primary/suzuki.png"
+    "SUZ": "https://assets.liveracemedia.com/manufacturers/primary/suzuki.png",
+    "TRI": "https://assets.liveracemedia.com/manufacturers/primary/triumph.png"
   };
   
   const categoryDisplayNames = {
@@ -102,7 +103,8 @@ function Game() {
     "YAM": "Yamaha",
     "KAW": "Kawasaki",
     "GAS": "GasGas",
-    "SUZ": "Suzuki"
+    "SUZ": "Suzuki",
+    "TRI": "Triumph"
   };
   
   
