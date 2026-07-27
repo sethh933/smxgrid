@@ -80,7 +80,8 @@
   "Non-USA Nationality": "SELECT DISTINCT r.FullName FROM Rider_List r WHERE r.Country <> 'United States'",
   "1+ West Coast 250 SX Championships": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.coastid = 1 AND c.ClassID = 2",
   "1+ East Coast 250 SX Championships": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.coastid = 2 AND c.ClassID = 2",
-  "SMX Playoff Main Appearance": "SELECT DISTINCT r.FullName FROM SMX_OVERALLS s JOIN Rider_List r ON s.RiderID = r.RiderID"
+  "SMX Playoff Main Appearance": "SELECT DISTINCT r.FullName FROM SMX_OVERALLS s JOIN Rider_List r ON s.RiderID = r.RiderID",
+  "WMX Appearance": "SELECT DISTINCT r.FullName FROM WMX_OVERALLS w JOIN Rider_List r ON w.RiderID = r.RiderID"
 
 
 
