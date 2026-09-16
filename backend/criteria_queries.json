@@ -1,4 +1,6 @@
 {
+  "450 SX Race Winner in 3+ Different Years": "SELECT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID JOIN Race_Table rt ON sm.RaceID = rt.RaceID WHERE sm.ClassID = 1 AND sm.Result = 1 GROUP BY r.RiderID, r.FullName HAVING COUNT(DISTINCT rt.Year) >= 3",
+  "Non-US SX Winner": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID WHERE sm.Result = 1 AND r.Country IS NOT NULL AND r.Country <> 'United States'",
   "450 SX Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1",
   "250 SX Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1",
   "250 SX East/West Showdown Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.CoastID = 3 AND m.Result = 1",
@@ -81,8 +83,28 @@
   "1+ West Coast 250 SX Championships": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.coastid = 1 AND c.ClassID = 2",
   "1+ East Coast 250 SX Championships": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN Champions c ON r.RiderID = c.RiderID WHERE c.SportID = 1 AND c.coastid = 2 AND c.ClassID = 2",
   "SMX Playoff Main Appearance": "SELECT DISTINCT r.FullName FROM SMX_OVERALLS s JOIN Rider_List r ON s.RiderID = r.RiderID",
-  "WMX Appearance": "SELECT DISTINCT r.FullName FROM WMX_OVERALLS w JOIN Rider_List r ON w.RiderID = r.RiderID"
+  "WMX Appearance": "SELECT DISTINCT r.FullName FROM WMX_OVERALLS w JOIN Rider_List r ON w.RiderID = r.RiderID",
 
+  "450 SX Heat Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_HEATS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result = 1",
+  "250 SX Heat Win": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_HEATS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result = 1",
+  "1+ 250 MX Pole Positions (2009-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 2 AND q.Result = 1",
+  "1+ 450 MX Pole Positions (2009-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_QUAL q ON r.riderID = q.RiderID WHERE q.ClassID = 1 AND q.Result = 1",
+  "450 SX Main Top Ten": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 10",
+  "250 SX Main Top Ten": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 10",
+  "450 MX Overall Top Ten": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 10",
+  "250 MX Overall Top Ten": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 10",
+  "450 SX Main Top Five": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 5",
+  "250 SX Main Top Five": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 5",
+  "450 MX Overall Top Five": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 5",
+  "250 MX Overall Top Five": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 5",
+  "450 SX Main Podium": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 3",
+  "250 SX Main Podium": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 3",
+  "450 MX Overall Podium": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 1 AND m.Result <= 3",
+  "250 MX Overall Podium": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS m ON r.RiderID = m.RiderID WHERE m.ClassID = 2 AND m.Result <= 3",
+  "1+ 450 SX Main Laps Led (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID WHERE sm.ClassID = 1 GROUP BY r.RiderID, r.FullName HAVING SUM(ISNULL(sm.LapsLed, 0)) >= 1",
+  "1+ 250 SX Main Laps Led (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN SX_MAINS sm ON r.RiderID = sm.RiderID WHERE sm.ClassID = 2 GROUP BY r.RiderID, r.FullName HAVING SUM(ISNULL(sm.LapsLed, 0)) >= 1",
+  "1+ 450 MX Laps Led (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS sm ON r.RiderID = sm.RiderID WHERE sm.ClassID = 1 GROUP BY r.RiderID, r.FullName HAVING SUM(ISNULL(sm.LapsLed, 0)) >= 1",
+  "1+ 250 MX Laps Led (2003-Present)": "SELECT DISTINCT r.FullName FROM Rider_List r JOIN MX_OVERALLS sm ON r.RiderID = sm.RiderID WHERE sm.ClassID = 2 GROUP BY r.RiderID, r.FullName HAVING SUM(ISNULL(sm.LapsLed, 0)) >= 1"
 
 
 

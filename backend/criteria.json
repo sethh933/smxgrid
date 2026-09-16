@@ -78,7 +78,28 @@
     "1+ West Coast 250 SX Championships",
     "1+ East Coast 250 SX Championships",
     "SMX Playoff Main Appearance",
-    "WMX Appearance"
+    "WMX Appearance",
+    "450 SX Heat Win",
+    "250 SX Heat Win",
+    "1+ 250 MX Pole Positions (2009-Present)",
+    "1+ 450 MX Pole Positions (2009-Present)",
+    "450 SX Main Top Ten",
+    "250 SX Main Top Ten",
+    "450 MX Overall Top Ten",
+    "250 MX Overall Top Ten",
+    "450 SX Main Top Five",
+    "250 SX Main Top Five",
+    "450 MX Overall Top Five",
+    "250 MX Overall Top Five",
+    "450 SX Main Podium",
+    "250 SX Main Podium",
+    "450 MX Overall Podium",
+    "250 MX Overall Podium",
+    "1+ 450 SX Main Laps Led (2003-Present)",
+    "1+ 250 SX Main Laps Led (2003-Present)",
+    "1+ 450 MX Laps Led (2003-Present)",
+    "1+ 250 MX Laps Led (2003-Present)"
+
   ],
 
 "invalid_pairings": {
@@ -89,7 +110,11 @@
     "20+ 450 SX Wins",
     "2+ 450 SX Championships",
     "10+ 450 SX Wins",
-    "450 SX Season Finale Winner"
+    "450 SX Season Finale Winner",
+    "5+ 450 SX Wins in One Season",
+    "450 SX Main Top Ten",
+    "450 SX Main Top Five",
+    "450 SX Main Podium"
   ],
   "1+ 250 SX Championships": [
     "250 SX Win",
@@ -101,7 +126,12 @@
     "250 SX East/West Showdown Win",
     "2+ 250 SX Championships",
     "1+ West Coast 250 SX Championships",
-    "1+ East Coast 250 SX Championships"
+    "1+ East Coast 250 SX Championships",
+    "5+ 250 SX Wins in One Season",
+    "250 SX Main Top Ten",
+    "250 SX Main Top Five",
+    "250 SX Main Podium"
+
   ],
   "1+ 450 MX Championships": [
     "450 MX Win",
@@ -114,17 +144,37 @@
   "450 MX Win": [
     "Red Bud 450 MX Winner",
     "2+ 450 MX Championships",
-    "Hangtown 450 MX Winner"
+    "Hangtown 450 MX Winner",
+    "450 MX Overall Top Ten",
+    "450 MX Overall Top Five",
+    "450 MX Overall Podium"
   ],
   "250 MX Win": [
-    "2+ 250 MX Championships"
+    "2+ 250 MX Championships",
+    "≤18 Years Old 250 MX Winner",
+    "250 MX 1+ 1-1 Overall Wins",
+    "250 MX Overall Top Ten",
+    "250 MX Overall Top Five",
+    "250 MX Overall Podium"
+
   ],
   "Raced in the 1990s": [
     "Raced in the 2020s"
   ],
   "10+ 450 SX Podiums": [
-    "20+ 450 SX Wins"
+    "20+ 450 SX Wins",
+    "10+ 450 SX Wins",
+    "450 SX Main Podium",
+    "450 SX Main Top Five",
+    "450 SX Main Top Ten"
   ],
+
+  "10+ 250 SX Podiums": [
+    "250 SX Main Podium",
+    "250 SX Main Top Five",
+    "250 SX Main Top Ten"
+  ],
+
    "European Nationality": [
     "United Kingdom",
     "France",

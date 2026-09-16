@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 import logging
+from grid_quality import HISTORY_DAYS, load_ratings, score_grid
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import EmailStr, BaseModel
@@ -98,13 +99,15 @@ CONN_STR = (
     "MARS_Connection=yes;"
 )
 
-with open("criteria.json") as f:
+with open("criteria.json", encoding="utf-8") as f:
     config = json.load(f)
     criteria_pool = config["criteria_pool"]
     invalid_pairings = config["invalid_pairings"]
 
-with open("criteria_queries.json") as f:
+with open("criteria_queries.json", encoding="utf-8") as f:
     criteria_queries = json.load(f)
+
+criteria_ratings = load_ratings(criteria_pool)
 
 profanity.load_censor_words()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -370,11 +373,22 @@ def generate_and_archive_switch():
         override_row = cursor.fetchone()
         override_id = override_row[0] if override_row else None
 
+        # Include the active grid and preceding week for automatic repeat rules.
+        cursor.execute("""
+            SELECT Row1, Row2, Row3, Column1, Column2, Column3
+            FROM dbo.DailyGrids
+            WHERE GridDate >= ? AND GridDate <= ?
+            ORDER BY GridDate DESC, GridID DESC
+        """, today - timedelta(days=HISTORY_DAYS), today)
+        recent_grids = [tuple(row) for row in cursor.fetchall()]
+        selected_quality = None
+        candidate_count = 0
+        selection_source = "manual"
         selected = None
         grid_id = None
 
         # Function to validate grid
-        def validate_and_select_grid(grid):
+        def validate_and_select_grid(grid, manual_override=False):
             grid_position_tuple = (grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3)
             grid_criteria = {grid.Row1, grid.Row2, grid.Row3, grid.Column1, grid.Column2, grid.Column3}
 
@@ -386,13 +400,28 @@ def generate_and_archive_switch():
             rows = [grid.Row1, grid.Row2, grid.Row3]
             cols = [grid.Column1, grid.Column2, grid.Column3]
 
+            # Old pool entries may reference removed criteria or newly forbidden pairs.
+            if any(name not in criteria_pool or name not in criteria_queries for name in rows + cols):
+                return False
+            if len(grid_criteria) != 6 or any(
+                col in invalid_pairings.get(row, []) or row in invalid_pairings.get(col, [])
+                for row in rows for col in cols
+            ):
+                return False
+            if not manual_override and any(
+                criteria_ratings[name] <= 2 and any(name in previous for previous in recent_grids)
+                for name in grid_criteria
+            ):
+                return False
             grid_data = {
                 (row, col): fetch_riders_for_criterion(row, conn) & fetch_riders_for_criterion(col, conn)
                 for row in rows for col in cols
             }
 
             if is_strongly_playable(grid_data):
-                return (rows, cols)
+                if manual_override:
+                    return rows, cols, None
+                return rows, cols, score_grid(rows + cols, grid_data, criteria_ratings, recent_grids)
             else:
                 cursor.execute("UPDATE dbo.GridPool SET Invalid = 1 WHERE GridPoolID = ?", grid.GridPoolID)
                 return False
@@ -407,13 +436,13 @@ def generate_and_archive_switch():
             override_grid = cursor.fetchone()
 
             if override_grid:
-                result = validate_and_select_grid(override_grid)
+                result = validate_and_select_grid(override_grid, manual_override=True)
                 if result:
                     selected = override_grid
-                    rows, cols = result
+                    rows, cols, selected_quality = result
                     grid_id = override_grid.GridPoolID
 
-        # ✅ Fallback to random if override failed or not set
+        # Weighted selection among all valid candidates in the random sample.
         if not selected:
             cursor.execute("""
                 SELECT TOP 1000 GridPoolID, Row1, Row2, Row3, Column1, Column2, Column3
@@ -421,13 +450,19 @@ def generate_and_archive_switch():
                 WHERE IsUsed = 0 AND Invalid = 0
                 ORDER BY NEWID()
             """)
+            candidates = []
             for grid in cursor.fetchall():
                 result = validate_and_select_grid(grid)
                 if result:
-                    selected = grid
-                    rows, cols = result
-                    grid_id = grid.GridPoolID
-                    break
+                    candidates.append((grid, result))
+            candidate_count = len(candidates)
+            if candidates:
+                selected, result = random.choices(
+                    candidates, weights=[result[2]["weight"] for _, result in candidates], k=1
+                )[0]
+                rows, cols, selected_quality = result
+                grid_id = selected.GridPoolID
+                selection_source = "weighted"
 
         if not selected:
             raise HTTPException(status_code=500, detail="No valid, playable grid found.")
@@ -456,7 +491,10 @@ def generate_and_archive_switch():
         return {
             "message": f"✅ New grid (GridPoolID {grid_id}) generated and old grid archived.",
             "new_rows": rows,
-            "new_columns": cols
+            "new_columns": cols,
+            "selection_source": selection_source,
+            "candidates_evaluated": candidate_count,
+            "quality": selected_quality,
         }
 
     except Exception as e:
@@ -1946,16 +1984,19 @@ def populate_grid_pool(max_to_generate: int = 1000):
 
 @app.post("/reload-config")
 def reload_config():
-    global criteria_pool, invalid_pairings, criteria_queries
+    global criteria_pool, invalid_pairings, criteria_queries, criteria_ratings
 
     try:
-        with open("criteria.json") as f:
-            config = json.load(f)
-            criteria_pool = config["criteria_pool"]
-            invalid_pairings = config["invalid_pairings"]
-
-        with open("criteria_queries.json") as f:
-            criteria_queries = json.load(f)
+        with open("criteria.json", encoding="utf-8") as f:
+            new_config = json.load(f)
+        with open("criteria_queries.json", encoding="utf-8") as f:
+            new_queries = json.load(f)
+        new_ratings = load_ratings(new_config["criteria_pool"])
+        criteria_pool = new_config["criteria_pool"]
+        invalid_pairings = new_config["invalid_pairings"]
+        criteria_queries = new_queries
+        criteria_ratings = new_ratings
+        rider_cache.clear()
 
         return {"message": "✅ Config reloaded successfully."}
 

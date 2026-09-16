@@ -80,6 +80,10 @@ function Game() {
   };
   
   const categoryDisplayNames = {
+    "1+ Career 450 SX Main Lap Led (2003-Present)": "1+ 450 SX Main Laps Led (2003-Present)",
+    "1+ Career 250 SX Main Lap Led (2003-Present)": "1+ 250 SX Main Laps Led (2003-Present)",
+    "1+ Career 450 MX Lap Led (2003-Present)": "1+ 450 MX Laps Led (2003-Present)",
+    "1+ Career 250 MX Lap Led (2003-Present)": "1+ 250 MX Laps Led (2003-Present)",
     "United States": "United States nationality",
     "United States 1": "United States nationality",
     "United States 2": "United States nationality",
@@ -734,7 +738,7 @@ return (
                   ) : categoryLogos[col] ? (
                     <img src={categoryLogos[col]} alt={col} title={categoryDisplayNames[col] || col} className="header-logo" />
                   ) : (
-                    col
+                    categoryDisplayNames[col] || col
                   )}
                 </div>
               ))}
@@ -749,7 +753,7 @@ return (
                     ) : categoryLogos[row] ? (
                       <img src={categoryLogos[row]} alt={row} title={categoryDisplayNames[row] || row} className="header-logo" />
                     ) : (
-                      row
+                      categoryDisplayNames[row] || row
                     )}
                   </div>
 
