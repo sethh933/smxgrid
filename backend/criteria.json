@@ -116,11 +116,42 @@
     "450 SX Main Top Five",
     "450 SX Main Podium"
   ],
+
+  "1+ 450 SX Championships": [
+    "450 SX Win",
+    "2+ 450 SX Championships",
+    "450 SX Main Top Ten",
+    "450 SX Main Top Five",
+    "450 SX Main Podium"
+  ],
+
   "1+ 250 SX Championships": [
     "250 SX Win",
     "2+ 250 SX Championships",
     "1+ West Coast 250 SX Championships",
-    "1+ East Coast 250 SX Championships"
+    "1+ East Coast 250 SX Championships",
+    "250 SX Main Top Ten",
+    "250 SX Main Top Five",
+    "250 SX Main Podium",
+    "250 SX Heat Win"
+  ],
+  "1+ West Coast 250 SX Championships": [
+    "250 SX Win",
+    "2+ 250 SX Championships",
+    "1+ 250 SX Championships",
+    "250 SX Main Top Ten",
+    "250 SX Main Top Five",
+    "250 SX Main Podium",
+    "250 SX Heat Win"
+  ],
+  "1+ East Coast 250 SX Championships": [
+    "250 SX Win",
+    "2+ 250 SX Championships",
+    "1+ 250 SX Championships",
+    "250 SX Main Top Ten",
+    "250 SX Main Top Five",
+    "250 SX Main Podium",
+    "250 SX Heat Win"
   ],
   "250 SX Win": [
     "250 SX East/West Showdown Win",
@@ -135,11 +166,18 @@
   ],
   "1+ 450 MX Championships": [
     "450 MX Win",
-    "2+ 450 MX Championships"
+    "2+ 450 MX Championships",
+    "450 MX Overall Top Ten",
+    "450 MX Overall Top Five",
+    "450 MX Overall Podium"
   ],
+
   "1+ 250 MX Championships": [
     "250 MX Win",
-    "2+ 250 MX Championships"
+    "2+ 250 MX Championships",
+    "250 MX Overall Top Ten",
+    "250 MX Overall Top Five",
+    "250 MX Overall Podium"
   ],
   "450 MX Win": [
     "Red Bud 450 MX Winner",
