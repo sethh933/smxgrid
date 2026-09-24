@@ -183,7 +183,22 @@
     "Hangtown 450 MX Winner",
     "450 MX Overall Top Ten",
     "450 MX Overall Top Five",
+    "450 MX Overall Podium",
+    "450 MX Top 20 Moto Finish"
+  ],
+
+  "450 MX Top 20 Moto Finish": [
+    "450 MX Overall Top Ten",
+    "450 MX Overall Top Five",
     "450 MX Overall Podium"
+
+  ],
+  
+  "250 MX Top 20 Moto Finish": [
+    "250 MX Overall Top Ten",
+    "250 MX Overall Top Five",
+    "250 MX Overall Podium"
+
   ],
   "250 MX Win": [
     "2+ 250 MX Championships",
@@ -191,7 +206,8 @@
     "250 MX 1+ 1-1 Overall Wins",
     "250 MX Overall Top Ten",
     "250 MX Overall Top Five",
-    "250 MX Overall Podium"
+    "250 MX Overall Podium",
+    "250 MX Top 20 Moto Finish"
 
   ],
   "Raced in the 1990s": [
