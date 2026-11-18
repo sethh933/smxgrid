@@ -1083,8 +1083,9 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
 
         game_id, guesses_made, completed = game_row
 
-        cursor.execute("""
-            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL, RiderID, IsFirstCorrect
+        first_correct_column = "IsFirstCorrect" if has_first_correct_column(cursor) else "CAST(0 AS BIT)"
+        cursor.execute(f"""
+            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL, RiderID, {first_correct_column}
             FROM dbo.UserGuesses
             WHERE GameID = ?
         """, (game_id,))
@@ -1110,6 +1111,11 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
     finally:
         cursor.close()
         conn.close()
+
+
+def has_first_correct_column(cursor):
+    cursor.execute("SELECT COL_LENGTH('dbo.UserGuesses', 'IsFirstCorrect')")
+    return cursor.fetchone()[0] is not None
 
 
 @app.get("/grid")
@@ -1374,8 +1380,9 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             )
         rider_id, image_url = result
 
+        supports_first_correct = has_first_correct_column(cursor)
         is_first_correct = False
-        if is_correct:
+        if supports_first_correct and is_correct:
             # Hold the rider's guess range through commit so only one submission can be first.
             cursor.execute("""
                 SELECT TOP 1 1
@@ -1384,10 +1391,18 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             """, (rider_id,))
             is_first_correct = cursor.fetchone() is None
 
-        cursor.execute("""
-            INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL, RiderID, IsFirstCorrect)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?, ?);
-        """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct), image_url, rider_id, int(is_first_correct)))
+        first_correct_column = ", IsFirstCorrect" if supports_first_correct else ""
+        first_correct_placeholder = ", ?" if supports_first_correct else ""
+        guess_params = (
+            grid_id, user_id, game_id, str(guest_id), guess.row, guess.column,
+            guess.rider, int(is_correct), image_url, rider_id,
+        )
+        if supports_first_correct:
+            guess_params += (int(is_first_correct),)
+        cursor.execute(f"""
+            INSERT INTO dbo.UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL, RiderID{first_correct_column})
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?{first_correct_placeholder});
+        """, guess_params)
         cursor.execute("""
             UPDATE dbo.Games
             SET GuessesMade = GuessesMade + 1,
