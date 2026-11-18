@@ -831,54 +831,25 @@ def get_user_profile(username: str):
 
         stats = cursor.fetchone() or (0, 0.0, 0.0, 0.0)
 
-        # ✅ Current streak
-        # ✅ Accurate daily streak calculation
+        # Rank each matching game once, even when both saved identities match.
         cursor.execute(f"""
-    WITH UserIDs AS (
-        SELECT UserID, GuestID
-        FROM dbo.Users
-        WHERE Username = ?
-    ),
-    AllGrids AS (
-        SELECT GridID, GridDate
-        FROM dbo.DailyGrids
-        WHERE Status IN ('Archived', 'Active')
-    ),
-    UserGames AS (
+    WITH UserGames AS (
         SELECT g.GridID, g.Completed,
                ROW_NUMBER() OVER (PARTITION BY g.GridID ORDER BY g.PlayedAt DESC) AS rn
         FROM dbo.Games g
-        JOIN UserIDs u ON g.UserID = u.UserID OR g.GuestID = u.GuestID
+        WHERE g.UserID IN ({user_placeholders}) OR g.GuestID IN ({guest_placeholders})
     ),
-    LatestUserGames AS (
-        SELECT GridID, Completed
-        FROM UserGames
-        WHERE rn = 1
-    ),
-    GridsWithCompletion AS (
-        SELECT ag.GridID, ag.GridDate, 
-               ISNULL(lg.Completed, 0) AS IsCompleted
-        FROM AllGrids ag
-        LEFT JOIN LatestUserGames lg ON ag.GridID = lg.GridID
-    ),
-    StreakCalc AS (
-        SELECT *, 
-               ROW_NUMBER() OVER (ORDER BY GridDate DESC) AS rn_desc
-        FROM GridsWithCompletion
-    ),
-    FirstMiss AS (
-        SELECT MIN(rn_desc) AS FirstUncompleted
-        FROM StreakCalc
-        WHERE IsCompleted = 0
+    GridCompletion AS (
+        SELECT ISNULL(g.Completed, 0) AS IsCompleted,
+               ROW_NUMBER() OVER (ORDER BY d.GridDate DESC) AS GridPosition
+        FROM dbo.DailyGrids d
+        LEFT JOIN UserGames g ON d.GridID = g.GridID AND g.rn = 1
+        WHERE d.Status IN ('Archived', 'Active')
     )
-    SELECT COUNT(*) AS CurrentStreak
-    FROM (
-        SELECT rn_desc
-        FROM StreakCalc
-        CROSS JOIN FirstMiss f
-        WHERE rn_desc < f.FirstUncompleted OR f.FirstUncompleted IS NULL
-    ) x;
-""", (username,))
+    SELECT COALESCE(MIN(CASE WHEN IsCompleted = 0 THEN GridPosition END) - 1, COUNT(*))
+        AS CurrentStreak
+    FROM GridCompletion;
+""", all_params)
         streak = cursor.fetchone()
         current_streak = streak[0] if streak else 0
 
@@ -1836,7 +1807,8 @@ def get_leaderboard(grid_id: Optional[int] = None):
 def get_grid_archive(
     guest_id: Optional[UUID] = Query(None),
     username: Optional[str] = Query(None),
-    show_all: bool = Query(False)
+    show_all: bool = Query(False),
+    limit: int = Query(20, ge=1, le=100),
 ):
     conn = pyodbc.connect(CONN_STR)
     cursor = conn.cursor()
@@ -1876,11 +1848,20 @@ def get_grid_archive(
                 ORDER BY g.PlayedAt DESC
             ) game
         """
-        # ✅ Add TOP 20 if show_all is False
-        top_clause = "" if show_all else "TOP 20"
+        top_clause = "" if show_all else "TOP (?)"
+        preview_order = "" if show_all else "ORDER BY GridDate DESC, GridID DESC"
+        params = user_ids + guest_ids
+        if not show_all:
+            params = [limit] + params
 
         cursor.execute(f"""
-            SELECT {top_clause}
+            WITH ArchivedGrids AS (
+                SELECT {top_clause} GridID, GridDate
+                FROM dbo.DailyGrids
+                WHERE Status = 'Archived'
+                {preview_order}
+            )
+            SELECT
                 d.GridID, d.GridDate, 
                 game.Completed, game.GuessesCorrect,
                 CASE 
@@ -1899,11 +1880,10 @@ def get_grid_archive(
                     )
                     ELSE NULL
                 END AS RarityScore
-            FROM DailyGrids d
+            FROM ArchivedGrids d
             {join_clause}
-            WHERE d.Status = 'Archived'
-            ORDER BY d.GridDate DESC
-        """, tuple(user_ids + guest_ids))
+            ORDER BY d.GridDate DESC, d.GridID DESC
+        """, tuple(params))
 
         archive = []
         for row in cursor.fetchall():

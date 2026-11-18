@@ -1,46 +1,59 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import TopBanner from "./TopBanner";
 import "./gridarchive.css";
 
+const PREVIEW_SIZE = 20;
+
 export default function GridArchive() {
   const [archiveData, setArchiveData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    const fetchArchive = async () => {
+  const fetchArchive = useCallback(async (all, signal) => {
+    setIsLoading(true);
+    setLoadError(false);
+    try {
       const guestId = localStorage.getItem("guest_id");
       const username = localStorage.getItem("username");
 
       if (!guestId && !username) return;
 
-      try {
-        const response = await axios.get(
-          username
-            ? `${import.meta.env.VITE_API_URL}/grid-archive?username=${username}&show_all=true`
-            : `${import.meta.env.VITE_API_URL}/grid-archive?guest_id=${guestId}&show_all=true`
-        );
-        setArchiveData(response.data);
-      } catch (error) {
+      const identity = username ? { username } : { guest_id: guestId };
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/grid-archive`, {
+        params: { ...identity, show_all: all, limit: PREVIEW_SIZE + 1 },
+        signal,
+      });
+      setArchiveData(response.data);
+      setShowAll(all);
+    } catch (error) {
+      if (!axios.isCancel(error)) {
         console.error("Failed to fetch archive:", error);
-      } finally {
+        setLoadError(true);
+      }
+    } finally {
+      if (!signal?.aborted) {
         setIsLoading(false);
       }
-    };
-
-    fetchArchive();
+    }
   }, []);
 
-  const displayedData = showAll ? archiveData : archiveData.slice(0, 20);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchArchive(false, controller.signal);
+    return () => controller.abort();
+  }, [fetchArchive]);
+
+  const displayedData = showAll ? archiveData : archiveData.slice(0, PREVIEW_SIZE);
 
   return (
   <>
     <TopBanner />
     <div className="flex flex-col items-center px-4 py-6 w-full">
       <div className="w-full max-w-5xl">
-        {!isLoading && (
+        {(!isLoading || archiveData.length > 0) && (
           <>
             <div className="archive-wrapper">
               <table className="grid-archive-table">
@@ -92,13 +105,22 @@ export default function GridArchive() {
               </table>
             </div>
 
-            {!showAll && archiveData.length > 20 && (
+            {loadError && (
+              <p role="alert" className="text-center">Couldn’t load the archive. Please try again.</p>
+            )}
+            {loadError && archiveData.length === 0 && (
+              <button onClick={() => fetchArchive(false)} className="archive-button">
+                Retry
+              </button>
+            )}
+            {!showAll && archiveData.length > PREVIEW_SIZE && (
               <div className="w-full flex justify-center py-6">
                 <button
-                  onClick={() => setShowAll(true)}
+                  onClick={() => fetchArchive(true)}
+                  disabled={isLoading}
                   className="archive-button"
                 >
-                  Show All
+                  {isLoading ? "Loading…" : "Show All"}
                 </button>
               </div>
             )}
