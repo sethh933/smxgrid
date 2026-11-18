@@ -300,6 +300,7 @@ const restoreGameFromBackend = async () => {
               name: guess.rider,
               image: guess.image_url || "",
               guess_percentage: 0,
+              is_first_correct: guess.is_first_correct,
               profile_url: buildRiderProfileUrl(guess.rider, guess.rider_id)
             };
             restoredUsedGuesses.push(guess.rider);
@@ -609,6 +610,7 @@ setGuessesLeft(response.data.remaining_attempts);
         name: selectedRider,
         image: response.data.image_url || "",
         guess_percentage: response.data.guess_percentage || 0,
+        is_first_correct: response.data.is_first_correct,
         profile_url: buildRiderProfileUrl(selectedRider, response.data.rider_id),
       };
       return newGrid;
@@ -772,6 +774,11 @@ return (
     }
   }}
 >
+                      {cell?.is_first_correct && (
+                        <span className="first-correct-badge" role="img" aria-label="First-ever correct guess for this rider" title="First-ever correct guess for this rider">
+                          🦄
+                        </span>
+                      )}
                       {typeof cell === "object" && cell.image ? (
   <>
     <img src={cell.image} alt={cell.name} className="rider-image" />

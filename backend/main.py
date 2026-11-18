@@ -1084,7 +1084,7 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
         game_id, guesses_made, completed = game_row
 
         cursor.execute("""
-            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL, RiderID
+            SELECT RowCriterion, ColumnCriterion, FullName, IsCorrect, ImageURL, RiderID, IsFirstCorrect
             FROM dbo.UserGuesses
             WHERE GameID = ?
         """, (game_id,))
@@ -1096,8 +1096,9 @@ def game_progress(grid_id: int, guest_id: Optional[str] = None, username: Option
             "rider": rider,
             "is_correct": bool(correct),
             "image_url": image,
-            "rider_id": rider_id
-        } for row, col, rider, correct, image, rider_id in guesses]
+            "rider_id": rider_id,
+            "is_first_correct": bool(first_correct)
+        } for row, col, rider, correct, image, rider_id, first_correct in guesses]
 
         return {
             "status": "completed" if completed else "in_progress",
@@ -1373,10 +1374,20 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             )
         rider_id, image_url = result
 
+        is_first_correct = False
+        if is_correct:
+            # Hold the rider's guess range through commit so only one submission can be first.
+            cursor.execute("""
+                SELECT TOP 1 1
+                FROM dbo.UserGuesses WITH (UPDLOCK, HOLDLOCK)
+                WHERE RiderID = ? AND IsCorrect = 1
+            """, (rider_id,))
+            is_first_correct = cursor.fetchone() is None
+
         cursor.execute("""
-            INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL, RiderID)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?);
-        """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct), image_url, rider_id))
+            INSERT INTO UserGuesses (GridID, UserID, GameID, GuestID, RowCriterion, ColumnCriterion, FullName, IsCorrect, GuessedAt, ImageURL, RiderID, IsFirstCorrect)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), ?, ?, ?);
+        """, (grid_id, user_id, game_id, str(guest_id), guess.row, guess.column, guess.rider, int(is_correct), image_url, rider_id, int(is_first_correct)))
         cursor.execute("""
             UPDATE dbo.Games
             SET GuessesMade = GuessesMade + 1,
@@ -1430,7 +1441,8 @@ def submit_guess(guess: GuessRequest, guest_id: UUID):
             "rider": guess.rider,
             "rider_id": rider_id,
             "image_url": image_url,
-            "guess_percentage": guess_percentage
+            "guess_percentage": guess_percentage,
+            "is_first_correct": is_first_correct
         }
 
     except Exception as e:
